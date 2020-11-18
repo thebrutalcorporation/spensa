@@ -1,0 +1,19 @@
+{
+  "name": "spensa",
+  "version": "1.0.0",
+  "description": "multi-currency expense tracker ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebrutalcorporation/spensa.git"
+  },
+  "author": "Charlie Astrada",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thebrutalcorporation/spensa/issues"
+  },
+  "homepage": "https://github.com/thebrutalcorporation/spensa#readme"
+}
