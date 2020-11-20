@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/thebrutalcorporation/spensa#readme",
   "devDependencies": {
+    "@types/express": "^4.17.7",
     "@types/node": "^14.14.8",
     "nodemon": "^2.0.6",
     "ts-node": "^9.0.0",
