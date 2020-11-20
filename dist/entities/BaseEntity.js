@@ -9,17 +9,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Post = void 0;
+exports.BaseEntity = void 0;
 const core_1 = require("@mikro-orm/core");
-const BaseEntity_1 = require("./BaseEntity");
-let Post = class Post extends BaseEntity_1.BaseEntity {
-};
+const uuid_1 = require("uuid");
+class BaseEntity {
+    constructor() {
+        this.uuid = uuid_1.v4();
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+    }
+}
 __decorate([
-    core_1.Property({ type: "text" }),
-    __metadata("design:type", String)
-], Post.prototype, "title", void 0);
-Post = __decorate([
-    core_1.Entity()
-], Post);
-exports.Post = Post;
-//# sourceMappingURL=Post.js.map
+    core_1.PrimaryKey({ type: "uuid" }),
+    __metadata("design:type", Object)
+], BaseEntity.prototype, "uuid", void 0);
+__decorate([
+    core_1.Property({ type: "date" }),
+    __metadata("design:type", Object)
+], BaseEntity.prototype, "createdAt", void 0);
+__decorate([
+    core_1.Property({ type: "date", onUpdate: () => new Date() }),
+    __metadata("design:type", Object)
+], BaseEntity.prototype, "updatedAt", void 0);
+exports.BaseEntity = BaseEntity;
+//# sourceMappingURL=BaseEntity.js.map
