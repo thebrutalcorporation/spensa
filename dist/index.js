@@ -14,9 +14,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@mikro-orm/core");
 const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
+const express_1 = __importDefault(require("express"));
+require("dotenv-safe/config");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
     yield orm.getMigrator().up();
+    const port = parseInt(process.env.PORT);
+    const app = express_1.default();
+    app.listen(port, () => {
+        console.log(`Server running on port: ${port}`);
+    });
 });
 main().catch((err) => console.log(err));
 //# sourceMappingURL=index.js.map
