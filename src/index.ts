@@ -1,16 +1,18 @@
 import { MikroORM } from "@mikro-orm/core";
-
 import mikroConfig from "./mikro-orm.config";
+import express from "express";
+import "dotenv-safe/config";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
   await orm.getMigrator().up();
 
-  //   const posts = await orm.em.find(Post, {});
-  //   console.log(posts);
+  const port = parseInt(process.env.PORT);
+  const app = express();
 
-  //   const post = orm.em.create(Post, { title: "first post" });
-  //   await orm.em.persistAndFlush(post);
+  app.listen(port, () => {
+    console.log(`Server running on port: ${port}`);
+  });
 };
 
 main().catch((err) => console.log(err));
