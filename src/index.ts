@@ -5,6 +5,7 @@ import "dotenv-safe/config";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
+import { TransactionResolver } from "./resolvers/transaction";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
@@ -15,9 +16,10 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver],
+      resolvers: [HelloResolver, TransactionResolver],
       validate: false,
     }),
+    context: () => ({ em: orm.em }),
   });
 
   apolloServer.applyMiddleware({ app }); //create graphql endpoint on express
