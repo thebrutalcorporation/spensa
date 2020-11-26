@@ -11,6 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionResolver = void 0;
 const Transaction_1 = require("../entities/Transaction");
@@ -21,6 +30,13 @@ let TransactionResolver = class TransactionResolver {
     }
     transaction(id, { em }) {
         return em.findOne(Transaction_1.Transaction, { id });
+    }
+    createTransaction(title, { em }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transaction = em.create(Transaction_1.Transaction, { title });
+            yield em.persistAndFlush(transaction);
+            return transaction;
+        });
     }
 };
 __decorate([
@@ -38,6 +54,14 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], TransactionResolver.prototype, "transaction", null);
+__decorate([
+    type_graphql_1.Mutation(() => Transaction_1.Transaction),
+    __param(0, type_graphql_1.Arg("title")),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], TransactionResolver.prototype, "createTransaction", null);
 TransactionResolver = __decorate([
     type_graphql_1.Resolver()
 ], TransactionResolver);

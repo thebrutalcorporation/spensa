@@ -16,4 +16,15 @@ export class TransactionResolver {
   ): Promise<Transaction | null> {
     return em.findOne(Transaction, { id });
   }
+
+  @Mutation(() => Transaction)
+  async createTransaction(
+    @Arg("title") title: string,
+    @Ctx() { em }: Context
+  ): Promise<Transaction> {
+    const transaction = em.create(Transaction, { title });
+    await em.persistAndFlush(transaction);
+
+    return transaction;
+  }
 }
