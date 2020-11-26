@@ -27,4 +27,23 @@ export class TransactionResolver {
 
     return transaction;
   }
+
+  @Mutation(() => Transaction, { nullable: true })
+  async updateTransaction(
+    @Arg("id") id: string,
+    @Arg("title") title: string,
+    @Ctx() { em }: Context
+  ): Promise<Transaction | null> {
+    const transaction = await em.findOne(Transaction, { id });
+    if (!transaction) {
+      return null;
+    }
+
+    if (typeof title != undefined && title !== transaction.title) {
+      transaction.title = title;
+      await em.persistAndFlush(transaction);
+    }
+
+    return transaction;
+  }
 }

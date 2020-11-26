@@ -38,6 +38,19 @@ let TransactionResolver = class TransactionResolver {
             return transaction;
         });
     }
+    updateTransaction(id, title, { em }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transaction = yield em.findOne(Transaction_1.Transaction, { id });
+            if (!transaction) {
+                return null;
+            }
+            if (typeof title != undefined && title !== transaction.title) {
+                transaction.title = title;
+                yield em.persistAndFlush(transaction);
+            }
+            return transaction;
+        });
+    }
 };
 __decorate([
     type_graphql_1.Query(() => [Transaction_1.Transaction]),
@@ -62,6 +75,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], TransactionResolver.prototype, "createTransaction", null);
+__decorate([
+    type_graphql_1.Mutation(() => Transaction_1.Transaction, { nullable: true }),
+    __param(0, type_graphql_1.Arg("id")),
+    __param(1, type_graphql_1.Arg("title")),
+    __param(2, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], TransactionResolver.prototype, "updateTransaction", null);
 TransactionResolver = __decorate([
     type_graphql_1.Resolver()
 ], TransactionResolver);
