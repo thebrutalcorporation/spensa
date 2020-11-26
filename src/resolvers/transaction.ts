@@ -46,4 +46,19 @@ export class TransactionResolver {
 
     return transaction;
   }
+
+  @Mutation(() => Boolean)
+  async deleteTransaction(
+    @Arg("id") id: string,
+    @Ctx() { em }: Context
+  ): Promise<boolean> {
+    const transaction = await em.findOne(Transaction, { id });
+    if (!transaction) {
+      return false;
+    }
+
+    await em.removeAndFlush(transaction);
+
+    return true;
+  }
 }
