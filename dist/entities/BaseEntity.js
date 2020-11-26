@@ -11,25 +11,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseEntity = void 0;
 const core_1 = require("@mikro-orm/core");
-const uuid_1 = require("uuid");
-class BaseEntity {
+const type_graphql_1 = require("type-graphql");
+let BaseEntity = class BaseEntity {
     constructor() {
-        this.uuid = uuid_1.v4();
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }
-}
+};
 __decorate([
-    core_1.PrimaryKey({ type: "uuid" }),
-    __metadata("design:type", Object)
-], BaseEntity.prototype, "uuid", void 0);
-__decorate([
+    type_graphql_1.Field(() => String),
     core_1.Property({ type: "date" }),
     __metadata("design:type", Object)
 ], BaseEntity.prototype, "createdAt", void 0);
 __decorate([
+    type_graphql_1.Field(() => String),
     core_1.Property({ type: "date", onUpdate: () => new Date() }),
     __metadata("design:type", Object)
 ], BaseEntity.prototype, "updatedAt", void 0);
+BaseEntity = __decorate([
+    type_graphql_1.ObjectType()
+], BaseEntity);
 exports.BaseEntity = BaseEntity;
 //# sourceMappingURL=BaseEntity.js.map
