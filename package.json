@@ -8,8 +8,11 @@
     "dev": "nodemon dist/index.js",
     "dev:ts-node": "nodemon --exec ts-node src/index.ts",
     "migration:create": "mikro-orm migration:create",
+    "schema:create": "mikro-orm schema:create --dump",
     "start": "ts-node src/index.ts",
-    "test": "jest --watch",
+    "test": "npm run test:db:setup && jest",
+    "test:watch": "npm run test -- --watch",
+    "test:db:setup": " node ./dist/test-utils/setup.js",
     "watch": "tsc -w"
   },
   "repository": {

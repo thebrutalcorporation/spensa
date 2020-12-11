@@ -3,9 +3,7 @@ import mikroConfig from "./mikro-orm.config";
 import express from "express";
 import "dotenv-safe/config";
 import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./resolvers/hello";
-import { TransactionResolver } from "./resolvers/transaction";
+import { createSchema } from "./utils/createSchema";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
@@ -15,10 +13,7 @@ const main = async () => {
   const app = express();
 
   const apolloServer = new ApolloServer({
-    schema: await buildSchema({
-      resolvers: [HelloResolver, TransactionResolver],
-      validate: false,
-    }),
+    schema: await createSchema(),
     context: () => ({ em: orm.em }),
   });
 
