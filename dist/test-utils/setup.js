@@ -15,6 +15,7 @@ testConn_1.testConn()
     const generator = orm.getSchemaGenerator();
     yield generator.dropSchema();
     yield generator.createSchema();
+    yield orm.close(true);
 }))
     .then(() => process.exit())
     .catch(console.log);
