@@ -1,6 +1,6 @@
 import { Transaction } from "../entities/Transaction";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { Context } from "src/types/context";
+import { Context } from "../types/context";
 
 @Resolver()
 export class TransactionResolver {
