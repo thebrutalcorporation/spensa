@@ -70,13 +70,47 @@ UserResponse = __decorate([
 let UserResolver = class UserResolver {
     register(options, { em }) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (options.username.length <= 2) {
+                return {
+                    errors: [
+                        {
+                            field: "username",
+                            message: "length must be greater than 2",
+                        },
+                    ],
+                };
+            }
+            if (options.password.length <= 5) {
+                return {
+                    errors: [
+                        {
+                            field: "password",
+                            message: "length must be at least 6 characters",
+                        },
+                    ],
+                };
+            }
             const hashedPassword = yield argon2_1.default.hash(options.password);
             const user = em.create(User_1.User, {
                 username: options.username.toLowerCase(),
                 password: hashedPassword,
             });
-            yield em.persistAndFlush(user);
-            return user;
+            try {
+                yield em.persistAndFlush(user);
+            }
+            catch (error) {
+                if (error.code == "23505") {
+                    return {
+                        errors: [
+                            {
+                                field: "username",
+                                message: "username already taken.",
+                            },
+                        ],
+                    };
+                }
+            }
+            return { user };
         });
     }
     login(options, { em }) {
