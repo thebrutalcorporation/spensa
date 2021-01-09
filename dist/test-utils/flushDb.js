@@ -9,18 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.gqlCall = void 0;
-const graphql_1 = require("graphql");
-const createSchema_1 = require("../utils/createSchema");
-let schema;
-exports.gqlCall = ({ source, variableValues }) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!schema) {
-        schema = yield createSchema_1.createSchema();
-    }
-    return graphql_1.graphql({
-        schema,
-        source,
-        variableValues,
-    });
-});
-//# sourceMappingURL=gqlCall.js.map
+exports.flushDb = void 0;
+exports.flushDb = (orm) => __awaiter(void 0, void 0, void 0, function* () { });
+//# sourceMappingURL=flushDb.js.map
