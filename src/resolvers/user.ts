@@ -12,7 +12,7 @@ import { Context } from "vm";
 import { User } from "../entities/User";
 
 @InputType()
-class UsernamePasswordInput {
+export class UsernamePasswordInput {
   @Field()
   username: string;
 
@@ -30,7 +30,7 @@ class FieldError {
 }
 
 @ObjectType()
-class UserResponse {
+export class UserResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
 
