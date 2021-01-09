@@ -81,6 +81,7 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     seededTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield em.nativeDelete(Transaction_1.Transaction, {});
     yield dbConn.close();
 }));
 describe("Transaction Resolver", () => {

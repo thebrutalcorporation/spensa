@@ -89,6 +89,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await em.nativeDelete(Transaction, {}); //clear all txns in test db
   await dbConn.close();
 });
 
