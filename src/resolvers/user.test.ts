@@ -55,6 +55,7 @@ const queriesAndMutations = {
 faker.locale = "es";
 
 const seedUserOptions = { username: "seed", password: "seed123" };
+const defaultUserOptions = { username: "test", password: "test123" };
 
 async function registerUser(
   username = seedUserOptions.username,
@@ -106,7 +107,10 @@ describe("Transaction Resolver", () => {
       //Arrange
 
       //Act
-      const registeredUserResponse = await registerUser("test", "test123");
+      const registeredUserResponse = await registerUser(
+        defaultUserOptions.username,
+        defaultUserOptions.password
+      );
       let dbUser = await em.findOne(User, {
         id: registeredUserResponse.user?.id,
       });
@@ -144,6 +148,31 @@ describe("Transaction Resolver", () => {
       expect(loggedInUser).not.toBe(null);
       expect(loggedInUser?.username).toBe(seedUser.username);
       expect(loggedInUser?.id).toBe(dbUser?.id);
+    });
+  });
+
+  describe("Validations", () => {
+    test("should not permit registration with username with lengths <= 2", async () => {
+      //Arrange
+      const username = "me";
+
+      //Act
+      const registeredUserResponse = await registerUser(
+        username,
+        defaultUserOptions.password
+      );
+
+      const errors = registeredUserResponse.errors;
+      const firstError = errors ? errors[0] : null;
+
+      console.log(registeredUserResponse);
+
+      //assert
+      expect(registeredUserResponse.user).toBe(null);
+      expect(errors).toHaveLength(1);
+      expect(firstError).not.toBe(null);
+      expect(firstError?.field).toBe("username");
+      expect(firstError?.message).toBe("length must be greater than 2");
     });
   });
 });

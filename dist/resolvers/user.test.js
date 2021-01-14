@@ -53,6 +53,7 @@ const queriesAndMutations = {
 };
 faker_1.default.locale = "es";
 const seedUserOptions = { username: "seed", password: "seed123" };
+const defaultUserOptions = { username: "test", password: "test123" };
 function registerUser(username = seedUserOptions.username, password = seedUserOptions.password) {
     return __awaiter(this, void 0, void 0, function* () {
         const { mutate } = server;
@@ -89,7 +90,7 @@ describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should register a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a, _b, _c;
-            const registeredUserResponse = yield registerUser("test", "test123");
+            const registeredUserResponse = yield registerUser(defaultUserOptions.username, defaultUserOptions.password);
             let dbUser = yield em.findOne(User_1.User, {
                 id: (_a = registeredUserResponse.user) === null || _a === void 0 ? void 0 : _a.id,
             });
@@ -117,6 +118,20 @@ describe("Transaction Resolver", () => {
             expect(loggedInUser).not.toBe(null);
             expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.username).toBe(seedUser.username);
             expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.id).toBe(dbUser === null || dbUser === void 0 ? void 0 : dbUser.id);
+        }));
+    });
+    describe("Validations", () => {
+        test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {
+            const username = "me";
+            const registeredUserResponse = yield registerUser(username, defaultUserOptions.password);
+            const errors = registeredUserResponse.errors;
+            const firstError = errors ? errors[0] : null;
+            console.log(registeredUserResponse);
+            expect(registeredUserResponse.user).toBe(null);
+            expect(errors).toHaveLength(1);
+            expect(firstError).not.toBe(null);
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("username");
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be greater than 2");
         }));
     });
 });
