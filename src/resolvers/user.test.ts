@@ -90,14 +90,10 @@ beforeAll(async () => {
 
   server = createTestClient(apolloServer);
 
-  const seedUserResponse = await registerUser();
-  if (seedUserResponse.user) {
-    seedUser = seedUserResponse.user;
-  }
+  await em.nativeDelete(User, {}); //clear all users in test db
 });
 
 afterAll(async () => {
-  await em.nativeDelete(User, {}); //clear all users in test db
   await dbConn.close();
 });
 
@@ -111,6 +107,7 @@ describe("Transaction Resolver", () => {
         defaultUserOptions.username,
         defaultUserOptions.password
       );
+
       let dbUser = await em.findOne(User, {
         id: registeredUserResponse.user?.id,
       });
@@ -126,6 +123,11 @@ describe("Transaction Resolver", () => {
       const { mutate } = server;
 
       //Act
+      const seedUserResponse = await registerUser();
+      if (seedUserResponse.user) {
+        seedUser = seedUserResponse.user;
+      }
+
       const response = await mutate({
         mutation: queriesAndMutations.LOGIN,
         variables: {
@@ -137,7 +139,6 @@ describe("Transaction Resolver", () => {
       });
 
       const loginResponse: UserResponse = response.data.login;
-
       const loggedInUser = loginResponse.user;
 
       let dbUser = await em.findOne(User, {
@@ -154,18 +155,16 @@ describe("Transaction Resolver", () => {
   describe("Validations", () => {
     test("should not permit registration with username with lengths <= 2", async () => {
       //Arrange
-      const username = "me";
+      const newUser = { ...defaultUserOptions, username: "me" };
 
       //Act
       const registeredUserResponse = await registerUser(
-        username,
-        defaultUserOptions.password
+        newUser.username,
+        newUser.password
       );
 
       const errors = registeredUserResponse.errors;
       const firstError = errors ? errors[0] : null;
-
-      console.log(registeredUserResponse);
 
       //assert
       expect(registeredUserResponse.user).toBe(null);
@@ -173,6 +172,26 @@ describe("Transaction Resolver", () => {
       expect(firstError).not.toBe(null);
       expect(firstError?.field).toBe("username");
       expect(firstError?.message).toBe("length must be greater than 2");
+    });
+    test("should not permit registration with password with length < 6", async () => {
+      //Arrange
+      const newUser = { ...defaultUserOptions, password: "abc" };
+
+      //Act
+      const registeredUserResponse = await registerUser(
+        newUser.username,
+        newUser.password
+      );
+
+      const errors = registeredUserResponse.errors;
+      const firstError = errors ? errors[0] : null;
+
+      //assert
+      expect(registeredUserResponse.user).toBe(null);
+      expect(errors).toHaveLength(1);
+      expect(firstError).not.toBe(null);
+      expect(firstError?.field).toBe("password");
+      expect(firstError?.message).toBe("length must be at least 6 characters");
     });
   });
 });

@@ -77,13 +77,9 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
         context: () => ({ em }),
     });
     server = apollo_server_testing_1.createTestClient(apolloServer);
-    const seedUserResponse = yield registerUser();
-    if (seedUserResponse.user) {
-        seedUser = seedUserResponse.user;
-    }
+    yield em.nativeDelete(User_1.User, {});
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield em.nativeDelete(User_1.User, {});
     yield dbConn.close();
 }));
 describe("Transaction Resolver", () => {
@@ -101,6 +97,10 @@ describe("Transaction Resolver", () => {
         }));
         test("should log in a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
             const { mutate } = server;
+            const seedUserResponse = yield registerUser();
+            if (seedUserResponse.user) {
+                seedUser = seedUserResponse.user;
+            }
             const response = yield mutate({
                 mutation: queriesAndMutations.LOGIN,
                 variables: {
@@ -122,16 +122,26 @@ describe("Transaction Resolver", () => {
     });
     describe("Validations", () => {
         test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {
-            const username = "me";
-            const registeredUserResponse = yield registerUser(username, defaultUserOptions.password);
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "me" });
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
             const errors = registeredUserResponse.errors;
             const firstError = errors ? errors[0] : null;
-            console.log(registeredUserResponse);
             expect(registeredUserResponse.user).toBe(null);
             expect(errors).toHaveLength(1);
             expect(firstError).not.toBe(null);
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("username");
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be greater than 2");
+        }));
+        test("should not permit registration with password with length < 6", () => __awaiter(void 0, void 0, void 0, function* () {
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { password: "abc" });
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
+            const errors = registeredUserResponse.errors;
+            const firstError = errors ? errors[0] : null;
+            expect(registeredUserResponse.user).toBe(null);
+            expect(errors).toHaveLength(1);
+            expect(firstError).not.toBe(null);
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("password");
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be at least 6 characters");
         }));
     });
 });
