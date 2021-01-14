@@ -143,6 +143,21 @@ describe("Transaction Resolver", () => {
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("password");
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be at least 6 characters");
         }));
+        test("should not permit registration if username exists", () => __awaiter(void 0, void 0, void 0, function* () {
+            const seedUserResponse = yield registerUser();
+            if (seedUserResponse.user) {
+                seedUser = seedUserResponse.user;
+            }
+            const newUser = Object.assign({}, seedUserOptions);
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
+            const errors = registeredUserResponse.errors;
+            const firstError = errors ? errors[0] : null;
+            expect(registeredUserResponse.user).toBe(null);
+            expect(errors).toHaveLength(1);
+            expect(firstError).not.toBe(null);
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("username");
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("username already taken.");
+        }));
     });
 });
 //# sourceMappingURL=user.test.js.map

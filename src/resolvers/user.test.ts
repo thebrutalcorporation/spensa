@@ -193,5 +193,32 @@ describe("Transaction Resolver", () => {
       expect(firstError?.field).toBe("password");
       expect(firstError?.message).toBe("length must be at least 6 characters");
     });
+    test("should not permit registration if username exists", async () => {
+      //ARRANGE
+
+      //create a seed user to take up the username
+      const seedUserResponse = await registerUser();
+      if (seedUserResponse.user) {
+        seedUser = seedUserResponse.user;
+      }
+      //new user will attempt registration with the same username as the already created seedUser
+      const newUser = { ...seedUserOptions };
+
+      //ACT
+      const registeredUserResponse = await registerUser(
+        newUser.username,
+        newUser.password
+      );
+
+      const errors = registeredUserResponse.errors;
+      const firstError = errors ? errors[0] : null;
+
+      //ASSERT
+      expect(registeredUserResponse.user).toBe(null);
+      expect(errors).toHaveLength(1);
+      expect(firstError).not.toBe(null);
+      expect(firstError?.field).toBe("username");
+      expect(firstError?.message).toBe("username already taken.");
+    });
   });
 });
