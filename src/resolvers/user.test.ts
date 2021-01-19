@@ -152,7 +152,7 @@ describe("Transaction Resolver", () => {
     });
   });
 
-  describe("Validations", () => {
+  describe("Registration Validations", () => {
     test("should not permit registration with username with lengths <= 2", async () => {
       //Arrange
       const newUser = { ...defaultUserOptions, username: "me" };

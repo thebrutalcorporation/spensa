@@ -120,7 +120,7 @@ describe("Transaction Resolver", () => {
             expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.id).toBe(dbUser === null || dbUser === void 0 ? void 0 : dbUser.id);
         }));
     });
-    describe("Validations", () => {
+    describe("Registration Validations", () => {
         test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "me" });
             const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
