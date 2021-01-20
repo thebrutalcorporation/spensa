@@ -95,8 +95,8 @@ describe("Transaction Resolver", () => {
         },
       });
 
-      const loginResponse: UserResponse = response.data.login;
-      const loggedInUser = loginResponse.user;
+      // const loginResponse: UserResponse = response.data.login;
+      // const loggedInUser = loginResponse.user;
 
       //act
 
@@ -104,7 +104,7 @@ describe("Transaction Resolver", () => {
         query: USER_QUERIES_AND_MUTATIONS.ME,
       });
 
-      console.log(res.data.me);
+      // console.log(res.data.me);
 
       //assert
       expect(true).toBe(true);

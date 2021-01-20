@@ -69,12 +69,9 @@ describe("Transaction Resolver", () => {
                     },
                 },
             });
-            const loginResponse = response.data.login;
-            const loggedInUser = loginResponse.user;
             const res = yield query({
                 query: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.ME,
             });
-            console.log(res.data.me);
             expect(true).toBe(true);
         }));
     });
