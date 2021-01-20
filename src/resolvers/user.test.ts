@@ -221,4 +221,60 @@ describe("Transaction Resolver", () => {
       expect(firstError?.message).toBe("username already taken.");
     });
   });
+  describe("Login Validations", () => {
+    test("should not permit login with incorrect username", async () => {
+      //Arrange
+      const { mutate } = server;
+      const newUser = { ...defaultUserOptions, username: "nonexistent" };
+      const expectedErrors = [
+        { field: "username", message: "username does not exist!" },
+      ];
+
+      //Act
+
+      const response = await mutate({
+        mutation: queriesAndMutations.LOGIN,
+        variables: {
+          options: {
+            username: newUser.username,
+            password: newUser.password,
+          },
+        },
+      });
+
+      const loginResponse: UserResponse = response.data.login;
+      const errors = loginResponse.errors;
+
+      //assert
+      expect(loginResponse.user).toBe(null);
+      expect(errors).not.toBe(null);
+      expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+    });
+    test("should not permit login with incorrect password", async () => {
+      //Arrange
+      const { mutate } = server;
+      const newUser = { ...defaultUserOptions, password: "wrongpassword" };
+      const expectedErrors = [{ field: "password", message: "Invalid login!" }];
+
+      //Act
+
+      const response = await mutate({
+        mutation: queriesAndMutations.LOGIN,
+        variables: {
+          options: {
+            username: newUser.username,
+            password: newUser.password,
+          },
+        },
+      });
+
+      const loginResponse: UserResponse = response.data.login;
+      const errors = loginResponse.errors;
+
+      //assert
+      expect(loginResponse.user).toBe(null);
+      expect(errors).not.toBe(null);
+      expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+    });
+  });
 });

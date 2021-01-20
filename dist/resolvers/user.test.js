@@ -159,5 +159,47 @@ describe("Transaction Resolver", () => {
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("username already taken.");
         }));
     });
+    describe("Login Validations", () => {
+        test("should not permit login with incorrect username", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { mutate } = server;
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "nonexistent" });
+            const expectedErrors = [
+                { field: "username", message: "username does not exist!" },
+            ];
+            const response = yield mutate({
+                mutation: queriesAndMutations.LOGIN,
+                variables: {
+                    options: {
+                        username: newUser.username,
+                        password: newUser.password,
+                    },
+                },
+            });
+            const loginResponse = response.data.login;
+            const errors = loginResponse.errors;
+            expect(loginResponse.user).toBe(null);
+            expect(errors).not.toBe(null);
+            expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+        }));
+        test("should not permit login with incorrect password", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { mutate } = server;
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { password: "wrongpassword" });
+            const expectedErrors = [{ field: "password", message: "Invalid login!" }];
+            const response = yield mutate({
+                mutation: queriesAndMutations.LOGIN,
+                variables: {
+                    options: {
+                        username: newUser.username,
+                        password: newUser.password,
+                    },
+                },
+            });
+            const loginResponse = response.data.login;
+            const errors = loginResponse.errors;
+            expect(loginResponse.user).toBe(null);
+            expect(errors).not.toBe(null);
+            expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+        }));
+    });
 });
 //# sourceMappingURL=user.test.js.map
