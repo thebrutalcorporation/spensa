@@ -57,22 +57,6 @@ describe("Transaction Resolver", () => {
             expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.id).toBe(dbUser === null || dbUser === void 0 ? void 0 : dbUser.id);
         }));
         xtest("should return current user if logged in", () => __awaiter(void 0, void 0, void 0, function* () {
-            const { query, mutate } = server;
-            const userOptions = factories_1.genUserOptions();
-            yield registerUser(userOptions.username, userOptions.password);
-            const response = yield mutate({
-                mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
-                variables: {
-                    options: {
-                        username: userOptions.username,
-                        password: userOptions.password,
-                    },
-                },
-            });
-            const res = yield query({
-                query: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.ME,
-            });
-            expect(true).toBe(true);
         }));
     });
     describe("Registration Validations", () => {

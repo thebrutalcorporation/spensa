@@ -76,38 +76,30 @@ describe("Transaction Resolver", () => {
       expect(loggedInUser?.id).toBe(dbUser?.id);
     });
     xtest("should return current user if logged in", async () => {
-      //session cookie set on user's machine if logged in.
-      //session exists if cookie exists
-
-      //arrange
-      const { query, mutate } = server;
-      const userOptions = genUserOptions();
-
-      await registerUser(userOptions.username, userOptions.password);
-
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          options: {
-            username: userOptions.username,
-            password: userOptions.password,
-          },
-        },
-      });
-
+      // //session cookie set on user's machine if logged in.
+      // //session exists if cookie exists
+      // //ARRANGE
+      // const { query, mutate } = server;
+      // const userOptions = genUserOptions();
+      // await registerUser(userOptions.username, userOptions.password);
+      // const response = await mutate({
+      //   mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
+      //   variables: {
+      //     options: {
+      //       username: userOptions.username,
+      //       password: userOptions.password,
+      //     },
+      //   },
+      // });
       // const loginResponse: UserResponse = response.data.login;
       // const loggedInUser = loginResponse.user;
-
-      //act
-
-      const res = await query({
-        query: USER_QUERIES_AND_MUTATIONS.ME,
-      });
-
-      // console.log(res.data.me);
-
-      //assert
-      expect(true).toBe(true);
+      // //ACT
+      // const res = await query({
+      //   query: USER_QUERIES_AND_MUTATIONS.ME,
+      // });
+      // // console.log(res.data.me);
+      // //ASSERT
+      // expect(true).toBe(true);
     });
   });
 
