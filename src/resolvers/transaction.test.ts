@@ -10,88 +10,16 @@ import {
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
-import faker from "faker";
+import faker from "faker/locale/es";
 import { testConn } from "../test-utils/testConn";
 import { ApolloServer } from "apollo-server-express";
 import { createSchema } from "../utils/createSchema";
 import { Transaction } from "../entities/Transaction";
+import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let server: ApolloServerTestClient;
-let seededTxn: Transaction;
-
-const queriesAndMutations = {
-  GET_ALL_TXNS: `query allTransactions{
-  transactions {
-    id
-    title
-    createdAt
-    updatedAt
-
-  }
-}`,
-  CREATE_TXN: `mutation createTransaction($title:String!){
-  createTransaction(title:$title) {
-    id
-    title
-    createdAt
-    updatedAt
-  }
-}`,
-  GET_TXN: `query getTransactionById($id:String!) {
-  transaction(id:$id){
-    id
-    title
-    createdAt
-    updatedAt
-  }
-}`,
-  UPDATE_TXN: `mutation updateTransaction($id:String!, $title:String!){
-  updateTransaction(id:$id ,title:$title){
-    id
-    title
-    createdAt
-    updatedAt
-  }
-}`,
-  DELETE_TXN: `mutation deleteTransaction($id:String!){
-  deleteTransaction(id:$id)
-}`,
-};
-
-//spanish locale for faker to test accents, etc
-faker.locale = "es";
-
-beforeAll(async () => {
-  //set up database connection
-  dbConn = await testConn();
-  em = dbConn.em;
-
-  //Setup an Apollo test server
-  const apolloServer = new ApolloServer({
-    schema: await createSchema(),
-    context: () => ({ em }),
-  });
-
-  server = createTestClient(apolloServer);
-
-  //Seed with single txn as all tests will need at least 1 txn.
-  const { mutate } = server;
-  const response = await mutate({
-    mutation: queriesAndMutations.CREATE_TXN,
-    variables: {
-      title: faker.company.companyName(),
-    },
-  });
-
-  seededTxn = response.data?.createTransaction;
-});
-
-afterAll(async () => {
-  await em.nativeDelete(Transaction, {}); //clear all txns in test db
-  await dbConn.close();
-});
 
 describe("Transaction Resolver", () => {
   describe("Happy Path", () => {
@@ -104,7 +32,7 @@ describe("Transaction Resolver", () => {
       //ACT
       const { mutate } = server;
       const response = await mutate({
-        mutation: queriesAndMutations.CREATE_TXN,
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         variables: txnToBeCreatedVariables,
       });
 
@@ -126,16 +54,34 @@ describe("Transaction Resolver", () => {
     });
 
     test("should return all transactions", async () => {
-      //arrange
-      const { query } = server;
+      //ARRANGE
+      const { query, mutate } = server;
 
-      //act
-      const res = await query({ query: queriesAndMutations.GET_ALL_TXNS });
+      //create 2 txns with diff titles
+      await mutate({
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        variables: {
+          title: faker.company.companyName(),
+        },
+      });
+
+      await mutate({
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        variables: {
+          title: faker.company.companyName(),
+        },
+      });
+
+      //ACT
+      const res = await query({
+        query: TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS,
+      });
       const transactions: Transaction[] = res.data.transactions;
+
       //query all txns directly from db
       const dbTxns = await em.find(Transaction, {});
 
-      //assert
+      //ASSERT
       transactions.forEach((transaction: Transaction) => {
         const matchingDbTxn = dbTxns.filter(
           (dbTxn) => dbTxn.id === transaction.id
@@ -145,76 +91,124 @@ describe("Transaction Resolver", () => {
       });
     });
     test("should return a transaction by id", async () => {
-      //arrange
-      const { query } = server;
-      const seededTxnId = seededTxn.id;
-      const seededTxnTitle = seededTxn.title;
+      //ARRANGE
+      const { query, mutate } = server;
 
-      //act
-      const res = await query({
-        query: queriesAndMutations.GET_TXN,
-        variables: { id: seededTxnId },
+      //create a new txn
+      const response = await mutate({
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        variables: {
+          title: faker.company.companyName(),
+        },
       });
 
-      const transaction = res.data.transaction;
+      const newlyCreatedTxn = response.data.createTransaction;
+
+      //ACT
+      //query txn by id
+      const res = await query({
+        query: TXN_QUERIES_AND_MUTATIONS.GET_TXN,
+        variables: { id: newlyCreatedTxn.id },
+      });
+
+      const returnedTxn = res.data.transaction;
 
       //query txn directly from db
       const [dbTxn]: Transaction[] = await em.find(Transaction, {
-        id: seededTxnId,
+        id: newlyCreatedTxn.id,
       });
 
-      //assert
-      expect(transaction.id).toBe(seededTxn.id);
-      expect(transaction.title).toBe(seededTxnTitle);
-      expect(transaction.id).toBe(dbTxn.id);
-      expect(transaction.title).toBe(dbTxn.title);
+      //ASSERT
+      expect(returnedTxn.id).toBe(newlyCreatedTxn.id);
+      expect(returnedTxn.title).toBe(newlyCreatedTxn.title);
+      expect(returnedTxn.id).toBe(dbTxn.id);
+      expect(returnedTxn.title).toBe(dbTxn.title);
     });
     test("should update a transaction", async () => {
-      //arrange
-      const { query } = server;
-      const seededTxnId = seededTxn.id;
-      const seededTxnTitle = seededTxn.title;
+      //ARRANGE
+      const { query, mutate } = server;
+
+      //create a new txn
+      const response = await mutate({
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        variables: {
+          title: faker.company.companyName(),
+        },
+      });
+
+      const newlyCreatedTxn = response.data.createTransaction;
+
+      //new title we will use to update txn
       const newTitle = faker.company.companyName();
 
-      //act
+      //ACT
       const res = await query({
-        query: queriesAndMutations.UPDATE_TXN,
-        variables: { id: seededTxnId, title: newTitle },
+        query: TXN_QUERIES_AND_MUTATIONS.UPDATE_TXN,
+        variables: { id: newlyCreatedTxn.id, title: newTitle },
       });
 
       const updatedTxn: Transaction = res.data.updateTransaction;
 
       //query txn directly from db
-      const [dbTxn] = await em.find(Transaction, { id: seededTxnId });
+      const [dbTxn] = await em.find(Transaction, { id: updatedTxn.id });
 
-      // console.log(transaction)
-      // console.log(dbTxn)
-
-      //assert
-      expect(updatedTxn.id).toBe(seededTxn.id); //check same transaction
-      expect(updatedTxn.title).not.toBe(seededTxnTitle); //we changed title so should not match
-      expect(updatedTxn.id).toBe(dbTxn.id); //check for sameness with dbTxn
+      //ASSERT
+      expect(updatedTxn.id).toBe(newlyCreatedTxn.id); //check same transaction
+      expect(updatedTxn.title).not.toBe(newlyCreatedTxn.title); //we changed title so should not match
+      expect(updatedTxn.id).toBe(dbTxn?.id); //check for sameness with dbTxn
       expect(updatedTxn.title).toBe(dbTxn.title);
-      expect(dbTxn.title).not.toBe(seededTxnTitle); //we changed title so should not match
+      expect(dbTxn.title).not.toBe(newlyCreatedTxn.title); //we changed title so should not match
     });
     test("should delete a transaction", async () => {
-      //arrange
-      const { query } = server;
-      const seededTxnId = seededTxn.id;
+      //ARRANGE
+      const { query, mutate } = server;
 
-      //act
+      //create a new txn to delete
+      const response = await mutate({
+        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        variables: {
+          title: faker.company.companyName(),
+        },
+      });
+
+      const newlyCreatedTxn = response.data.createTransaction;
+
+      //ACT
+      //Delete txn by id
       const res = await query({
-        query: queriesAndMutations.DELETE_TXN,
-        variables: { id: seededTxnId },
+        query: TXN_QUERIES_AND_MUTATIONS.DELETE_TXN,
+        variables: { id: newlyCreatedTxn.id },
       });
       const isTxnDeleted: Boolean = res.data.deleteTransaction;
 
       //should be undefined after deletion
-      const [dbTxn] = await em.find(Transaction, { id: seededTxnId });
+      const [dbTxn] = await em.find(Transaction, { id: newlyCreatedTxn.id });
 
-      //assert
+      //ASSERT
       expect(isTxnDeleted).toBe(true);
       expect(dbTxn).toBe(undefined);
     });
   });
+});
+
+beforeAll(async () => {
+  //set up database connection
+  dbConn = await testConn();
+  em = dbConn.em;
+
+  //Setup an Apollo test server
+  const apolloServer = new ApolloServer({
+    schema: await createSchema(),
+    context: () => ({ em }),
+  });
+
+  server = createTestClient(apolloServer);
+});
+
+beforeEach(async () => {
+  await em.nativeDelete(Transaction, {}); //clear all txns in test db
+});
+
+afterAll(async () => {
+  await dbConn.close();
 });

@@ -1,5 +1,4 @@
-import faker from "faker";
-faker.locale = "es";
+import faker from "faker/locale/es";
 
 export function genUserOptions() {
   const firstName = faker.name.firstName().toLowerCase();
