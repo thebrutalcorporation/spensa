@@ -6,7 +6,7 @@ const child_process_1 = require("child_process");
 const BaseEntity_1 = require("../entities/BaseEntity");
 const Transaction_1 = require("../entities/Transaction");
 const User_1 = require("../entities/User");
-exports.testConn = () => {
+const testConn = () => {
     child_process_1.exec(`createdb spensa-test`);
     return core_1.MikroORM.init({
         clientUrl: "postgresql://charlieastrada@localhost:5432/spensa-test",
@@ -14,4 +14,5 @@ exports.testConn = () => {
         type: "postgresql",
     });
 };
+exports.testConn = testConn;
 //# sourceMappingURL=testConn.js.map

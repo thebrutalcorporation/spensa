@@ -4,10 +4,11 @@ exports.createSchema = void 0;
 const transaction_1 = require("../resolvers/transaction");
 const type_graphql_1 = require("type-graphql");
 const user_1 = require("../resolvers/user");
-exports.createSchema = () => {
+const createSchema = () => {
     return type_graphql_1.buildSchema({
         resolvers: [transaction_1.TransactionResolver, user_1.UserResolver],
         validate: false,
     });
 };
+exports.createSchema = createSchema;
 //# sourceMappingURL=createSchema.js.map
