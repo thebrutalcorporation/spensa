@@ -6,10 +6,12 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from "type-graphql";
-import { Context } from "vm";
+
 import { User } from "../entities/User";
+import { Context } from "../types/context";
 
 @InputType()
 export class UsernamePasswordInput {
@@ -40,10 +42,22 @@ export class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: Context) {
+    //not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+
+    const user = await em.findOne(User, { id: req.session.userId });
+
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: Context
+    @Ctx() { em, req }: Context
   ): Promise<UserResponse> {
     if (options.username.length <= 2) {
       return {
@@ -86,15 +100,19 @@ export class UserResolver {
         };
       }
     }
+
+    //set session cookie to automatically log in new user
+    req.session.userId = user.id;
+
     return { user };
   }
 
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: Context
+    @Ctx() { em, req }: Context
   ): Promise<UserResponse> {
-    const user: User = await em.findOne(User, {
+    const user = await em.findOne(User, {
       username: options.username.toLowerCase(),
     });
 
@@ -124,6 +142,8 @@ export class UserResolver {
         ],
       };
     }
+
+    req.session.userId = user.id;
 
     return { user };
   }
