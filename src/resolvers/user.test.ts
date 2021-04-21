@@ -245,6 +245,7 @@ beforeAll(async () => {
 
   //TODO: in order to inject context, you need to make creating a test server something you can invoke FOR EACH test
   //Check https://github.com/apollographql/fullstack-tutorial/blob/b25df2e9fd45ec5bcd07e4c2f34b79b7a8bd0817/final/server/src/__tests__/__utils.js#L21
+  //TODO: Or just re-write using this project which solves the req in context issue: https://github.com/zapier/apollo-server-integration-testing
   //Setup an Apollo test server
   const apolloServer = new ApolloServer({
     schema: await createSchema(),
