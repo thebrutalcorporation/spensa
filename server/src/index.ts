@@ -8,6 +8,7 @@ import { Context } from "./types/context";
 import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
+import cors from "cors";
 
 const RedisStore = connectRedis(session);
 const redisClient = redis.createClient();
@@ -18,6 +19,13 @@ const main = async () => {
 
   const port = parseInt(process.env.PORT);
   const app = express();
+
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
 
   app.use(
     session({
@@ -43,7 +51,10 @@ const main = async () => {
     context: ({ req, res }): Context => ({ em: orm.em, req, res }),
   });
 
-  apolloServer.applyMiddleware({ app }); //create graphql endpoint on express
+  apolloServer.applyMiddleware({
+    app,
+    cors: false,
+  }); //create graphql endpoint on express
 
   app.listen(port, () => {
     console.log(`Server running on port: ${port}`);
