@@ -70,6 +70,7 @@ export class UserResolver {
       };
     }
     if (options.password.length <= 5) {
+      //@TODO: add more robust password handling, perhaps magic links
       return {
         errors: [
           {
