@@ -16,10 +16,10 @@ import { Context } from "../types/context";
 @InputType()
 export class UsernamePasswordInput {
   @Field()
-  username: string;
+  username!: string;
 
   @Field()
-  password: string;
+  password!: string;
 }
 
 @ObjectType()
