@@ -9,6 +9,7 @@ import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
+import { COOKIE_NAME } from "./constants";
 
 const RedisStore = connectRedis(session);
 const redisClient = redis.createClient();
@@ -29,7 +30,7 @@ const main = async () => {
 
   app.use(
     session({
-      name: "qid",
+      name: COOKIE_NAME,
       cookie: {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, //10 years
