@@ -1,0 +1,8 @@
+query allTransactions {
+  transactions {
+    id
+    title
+    createdAt
+    updatedAt
+  }
+}

@@ -1,14 +1,28 @@
 import { Box } from "@chakra-ui/layout";
 import React from "react";
 import { NavBar } from "../components/NavBar";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { useAllTransactionsQuery } from "../generated/graphql";
 
-const Index = () => (
-  <Box>
-    <NavBar />
+const Index = () => {
+  const [{ data }] = useAllTransactionsQuery();
+  return (
     <Box>
-      <div>Hello World!</div>
+      <NavBar />
+      <Box>
+        <div>Hello World!</div>
+        <br />
+        {!data ? (
+          <div>loading...</div>
+        ) : (
+          data.transactions.map((transaction) => (
+            <div key={transaction.id}>{transaction.title}</div>
+          ))
+        )}
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
-export default Index;
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);

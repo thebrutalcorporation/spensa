@@ -147,6 +147,17 @@ export type RegisterMutation = (
   ) }
 );
 
+export type AllTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllTransactionsQuery = (
+  { __typename?: 'Query' }
+  & { transactions: Array<(
+    { __typename?: 'Transaction' }
+    & Pick<Transaction, 'id' | 'title' | 'createdAt' | 'updatedAt'>
+  )> }
+);
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -206,6 +217,20 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const AllTransactionsDocument = gql`
+    query allTransactions {
+  transactions {
+    id
+    title
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+export function useAllTransactionsQuery(options: Omit<Urql.UseQueryArgs<AllTransactionsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<AllTransactionsQuery>({ query: AllTransactionsDocument, ...options });
 };
 export const MeDocument = gql`
     query Me {
