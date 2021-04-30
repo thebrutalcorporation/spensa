@@ -12,8 +12,6 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     pause: isServer(), //do not run query if on server
   });
 
-  console.log("data: ", data);
-
   if (fetching) {
     return null;
   }
