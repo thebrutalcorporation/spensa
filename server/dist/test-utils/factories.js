@@ -10,9 +10,11 @@ function genUserOptions() {
     const lastName = es_1.default.name.lastName().toLowerCase();
     const fullName = `${firstName}_${lastName}`;
     const password = es_1.default.internet.password();
+    const email = es_1.default.internet.email();
     return {
         username: fullName,
         password,
+        email,
     };
 }
 exports.genUserOptions = genUserOptions;

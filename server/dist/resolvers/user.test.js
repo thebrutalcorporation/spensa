@@ -25,7 +25,7 @@ describe("Transaction Resolver", () => {
         test("should register a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a, _b, _c;
             const userToRegister = factories_1.genUserOptions();
-            const registeredUserResponse = yield registerUser(userToRegister.username, userToRegister.password);
+            const registeredUserResponse = yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const dbUser = yield em.findOne(User_1.User, {
                 id: (_a = registeredUserResponse.user) === null || _a === void 0 ? void 0 : _a.id,
             });
@@ -37,14 +37,12 @@ describe("Transaction Resolver", () => {
         test("should log in a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
             const { mutate } = server;
             const user = factories_1.genUserOptions();
-            yield registerUser(user.username, user.password);
+            yield registerUser(user.username, user.password, user.email);
             const response = yield mutate({
                 mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
                 variables: {
-                    options: {
-                        username: user.username,
-                        password: user.password,
-                    },
+                    usernameOrEmail: user.username,
+                    password: user.password,
                 },
             });
             const loginResponse = response.data.login;
@@ -63,7 +61,7 @@ describe("Transaction Resolver", () => {
         test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {
             const defaultUserOptions = factories_1.genUserOptions();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "me" });
-            const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
             const errors = registeredUserResponse.errors;
             const firstError = errors ? errors[0] : null;
             expect(registeredUserResponse.user).toBe(null);
@@ -75,7 +73,7 @@ describe("Transaction Resolver", () => {
         test("should not permit registration with password with length < 6", () => __awaiter(void 0, void 0, void 0, function* () {
             const defaultUserOptions = factories_1.genUserOptions();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { password: "abc" });
-            const registeredUserResponse = yield registerUser(newUser.username, newUser.password);
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
             const errors = registeredUserResponse.errors;
             const firstError = errors ? errors[0] : null;
             expect(registeredUserResponse.user).toBe(null);
@@ -86,9 +84,9 @@ describe("Transaction Resolver", () => {
         }));
         test("should not permit registration if username exists", () => __awaiter(void 0, void 0, void 0, function* () {
             const userToRegister = factories_1.genUserOptions();
-            yield registerUser(userToRegister.username, userToRegister.password);
+            yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const newUserToRegister = Object.assign({}, userToRegister);
-            const duplicateRegisteredUserResponse = yield registerUser(newUserToRegister.username, newUserToRegister.password);
+            const duplicateRegisteredUserResponse = yield registerUser(newUserToRegister.username, newUserToRegister.password, newUserToRegister.email);
             const errors = duplicateRegisteredUserResponse.errors;
             const firstError = errors ? errors[0] : null;
             expect(duplicateRegisteredUserResponse.user).toBe(null);
@@ -104,17 +102,16 @@ describe("Transaction Resolver", () => {
             const defaultUserOptions = factories_1.genUserOptions();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "nonexistent" });
             const expectedErrors = [
-                { field: "username", message: "username does not exist!" },
+                { field: "usernameOrEmail", message: "username does not exist!" },
             ];
             const response = yield mutate({
                 mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
                 variables: {
-                    options: {
-                        username: newUser.username,
-                        password: newUser.password,
-                    },
+                    usernameOrEmail: newUser.username,
+                    password: newUser.password,
                 },
             });
+            console.log(response.data);
             const loginResponse = response.data.login;
             const errors = loginResponse.errors;
             expect(loginResponse.user).toBe(null);
@@ -124,16 +121,14 @@ describe("Transaction Resolver", () => {
         test("should not permit login with incorrect password", () => __awaiter(void 0, void 0, void 0, function* () {
             const { mutate } = server;
             const userToRegister = factories_1.genUserOptions();
-            yield registerUser(userToRegister.username, userToRegister.password);
+            yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const userWrongPassword = Object.assign(Object.assign({}, userToRegister), { password: "wrongpassword" });
             const expectedErrors = [{ field: "password", message: "Invalid login!" }];
             const response = yield mutate({
                 mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
                 variables: {
-                    options: {
-                        username: userWrongPassword.username,
-                        password: userWrongPassword.password,
-                    },
+                    usernameOrEmail: userWrongPassword.username,
+                    password: userWrongPassword.password,
                 },
             });
             const loginResponse = response.data.login;
@@ -160,12 +155,13 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield dbConn.close();
 }));
-function registerUser(username, password) {
+function registerUser(username, password, email) {
     return __awaiter(this, void 0, void 0, function* () {
         const { mutate } = server;
         const userToCreate = {
             username,
             password,
+            email,
         };
         const response = yield mutate({
             mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.REGISTER,

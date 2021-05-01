@@ -43,7 +43,9 @@ exports.USER_QUERIES_AND_MUTATIONS = {
     REGISTER: `mutation register($options: UsernamePasswordInput!) {
   register(options: $options) {
     user {
-      id      
+      id
+      createdAt
+      updatedAt
       username
     }
     errors {
@@ -52,9 +54,10 @@ exports.USER_QUERIES_AND_MUTATIONS = {
     }
   }
 }
+
 `,
-    LOGIN: `mutation login($options:UsernamePasswordInput!) {
-  login(options:$options) {
+    LOGIN: `mutation Login($usernameOrEmail: String!, $password: String!) {
+  login(usernameOrEmail: $usernameOrEmail, password: $password) {
     errors {
       field
       message
@@ -65,6 +68,7 @@ exports.USER_QUERIES_AND_MUTATIONS = {
     }
   }
 }
+
 `,
     ME: `query me {
   me {

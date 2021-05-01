@@ -14,7 +14,7 @@ import {
 import { testConn } from "../test-utils/testConn";
 import { ApolloServer } from "apollo-server-express";
 import { createSchema } from "../utils/createSchema";
-import { UsernamePasswordInput, UserResponse } from "./user";
+import { UserResponse } from "./user";
 import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
@@ -32,7 +32,8 @@ describe("Transaction Resolver", () => {
       //Act
       const registeredUserResponse = await registerUser(
         userToRegister.username,
-        userToRegister.password
+        userToRegister.password,
+        userToRegister.email
       );
 
       const dbUser = await em.findOne(User, {
@@ -51,15 +52,13 @@ describe("Transaction Resolver", () => {
 
       //[ARRANGE] Register user that will be logged in
       const user = genUserOptions();
-      await registerUser(user.username, user.password);
+      await registerUser(user.username, user.password, user.email);
 
       const response = await mutate({
         mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
         variables: {
-          options: {
-            username: user.username,
-            password: user.password,
-          },
+          usernameOrEmail: user.username,
+          password: user.password,
         },
       });
 
@@ -112,7 +111,8 @@ describe("Transaction Resolver", () => {
       //Act
       const registeredUserResponse = await registerUser(
         newUser.username,
-        newUser.password
+        newUser.password,
+        newUser.email
       );
 
       const errors = registeredUserResponse.errors;
@@ -133,7 +133,8 @@ describe("Transaction Resolver", () => {
       //Act
       const registeredUserResponse = await registerUser(
         newUser.username,
-        newUser.password
+        newUser.password,
+        newUser.email
       );
 
       const errors = registeredUserResponse.errors;
@@ -151,7 +152,11 @@ describe("Transaction Resolver", () => {
       const userToRegister = genUserOptions();
 
       //Register a user to take up username
-      await registerUser(userToRegister.username, userToRegister.password);
+      await registerUser(
+        userToRegister.username,
+        userToRegister.password,
+        userToRegister.email
+      );
 
       //new user will attempt registration with the same username as the already created seedUser
       const newUserToRegister = { ...userToRegister };
@@ -159,7 +164,8 @@ describe("Transaction Resolver", () => {
       //ACT
       const duplicateRegisteredUserResponse = await registerUser(
         newUserToRegister.username,
-        newUserToRegister.password
+        newUserToRegister.password,
+        newUserToRegister.email
       );
 
       const errors = duplicateRegisteredUserResponse.errors;
@@ -180,19 +186,19 @@ describe("Transaction Resolver", () => {
       const defaultUserOptions = genUserOptions();
       const newUser = { ...defaultUserOptions, username: "nonexistent" };
       const expectedErrors = [
-        { field: "username", message: "username does not exist!" },
+        { field: "usernameOrEmail", message: "username does not exist!" },
       ];
 
       //ACT
       const response = await mutate({
         mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
         variables: {
-          options: {
-            username: newUser.username,
-            password: newUser.password,
-          },
+          usernameOrEmail: newUser.username,
+          password: newUser.password,
         },
       });
+
+      console.log(response.data);
 
       const loginResponse: UserResponse = response.data.login;
       const errors = loginResponse.errors;
@@ -207,7 +213,11 @@ describe("Transaction Resolver", () => {
       const { mutate } = server;
       const userToRegister = genUserOptions();
       //register user with a username + password
-      await registerUser(userToRegister.username, userToRegister.password);
+      await registerUser(
+        userToRegister.username,
+        userToRegister.password,
+        userToRegister.email
+      );
 
       //correct username but wrong password
       const userWrongPassword = {
@@ -220,10 +230,8 @@ describe("Transaction Resolver", () => {
       const response = await mutate({
         mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
         variables: {
-          options: {
-            username: userWrongPassword.username,
-            password: userWrongPassword.password,
-          },
+          usernameOrEmail: userWrongPassword.username,
+          password: userWrongPassword.password,
         },
       });
 
@@ -264,11 +272,12 @@ afterAll(async () => {
   await dbConn.close();
 });
 
-async function registerUser(username: string, password: string) {
+async function registerUser(username: string, password: string, email: string) {
   const { mutate } = server;
-  const userToCreate: UsernamePasswordInput = {
+  const userToCreate = {
     username,
     password,
+    email,
   };
 
   const response = await mutate({
