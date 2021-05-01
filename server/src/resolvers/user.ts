@@ -35,10 +35,10 @@ export class UserResponse {
 
 @Resolver()
 export class UserResolver {
-  @Mutation(() => Boolean)
-  async forgotPassword(@Arg("email") email: string, @Ctx() { em }: Context) {
-    const user = await em.findOne(User, {});
-  }
+  // @Mutation(() => Boolean)
+  // async forgotPassword(@Arg("email") email: string, @Ctx() { em }: Context) {
+  //   const user = await em.findOne(User, {});
+  // }
 
   @Query(() => User, { nullable: true })
   async me(@Ctx() { em, req }: Context) {
@@ -112,7 +112,7 @@ export class UserResolver {
         errors: [
           {
             field: "usernameOrEmail",
-            message: "username does not exist!",
+            message: "user does not exist!",
           },
         ],
       };
