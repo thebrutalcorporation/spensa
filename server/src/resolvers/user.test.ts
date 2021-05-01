@@ -46,7 +46,7 @@ describe("Transaction Resolver", () => {
       expect(registeredUserResponse.user?.username).not.toBe(null);
       expect(registeredUserResponse.user?.username).toBe(dbUser?.username);
     });
-    test("should log in a new user successfully ", async () => {
+    test("should log in a new user successfully with username ", async () => {
       //ARRANGE
       const { mutate } = server;
 
@@ -58,6 +58,34 @@ describe("Transaction Resolver", () => {
         mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
         variables: {
           usernameOrEmail: user.username,
+          password: user.password,
+        },
+      });
+
+      const loginResponse: UserResponse = response.data.login;
+      const loggedInUser = loginResponse.user;
+
+      const dbUser = await em.findOne(User, {
+        id: loggedInUser?.id,
+      });
+
+      //assert
+      expect(loggedInUser).not.toBe(null);
+      expect(loggedInUser?.username).toBe(user.username);
+      expect(loggedInUser?.id).toBe(dbUser?.id);
+    });
+    test("should log in a new user successfully with email ", async () => {
+      //ARRANGE
+      const { mutate } = server;
+
+      //[ARRANGE] Register user that will be logged in
+      const user = genUserOptions();
+      await registerUser(user.username, user.password, user.email);
+
+      const response = await mutate({
+        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
+        variables: {
+          usernameOrEmail: user.email,
           password: user.password,
         },
       });
@@ -125,6 +153,33 @@ describe("Transaction Resolver", () => {
       expect(firstError?.field).toBe("username");
       expect(firstError?.message).toBe("length must be greater than 2");
     });
+    test("should not permit registration with invalid email", async () => {
+      //Arrange
+      const defaultUserOptions = genUserOptions();
+      //currently the validation is simply checking that an @ exists.
+      //TODO: add a proper validation library.
+      const newUser = {
+        ...defaultUserOptions,
+        email: "improperlyformattedemail",
+      };
+
+      //Act
+      const registeredUserResponse = await registerUser(
+        newUser.username,
+        newUser.password,
+        newUser.email
+      );
+
+      const errors = registeredUserResponse.errors;
+      const firstError = errors ? errors[0] : null;
+
+      //assert
+      expect(registeredUserResponse.user).toBe(null);
+      expect(errors).toHaveLength(1);
+      expect(firstError).not.toBe(null);
+      expect(firstError?.field).toBe("email");
+      expect(firstError?.message).toBe("invalid email");
+    });
     test("should not permit registration with password with length < 6", async () => {
       //Arrange
       const defaultUserOptions = genUserOptions();
@@ -186,7 +241,7 @@ describe("Transaction Resolver", () => {
       const defaultUserOptions = genUserOptions();
       const newUser = { ...defaultUserOptions, username: "nonexistent" };
       const expectedErrors = [
-        { field: "usernameOrEmail", message: "username does not exist!" },
+        { field: "usernameOrEmail", message: "user does not exist!" },
       ];
 
       //ACT
@@ -198,7 +253,34 @@ describe("Transaction Resolver", () => {
         },
       });
 
-      console.log(response.data);
+      const loginResponse: UserResponse = response.data.login;
+      const errors = loginResponse.errors;
+
+      //ASSERT
+      expect(loginResponse.user).toBe(null);
+      expect(errors).not.toBe(null);
+      expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+    });
+    test("should not permit login with incorrect email", async () => {
+      //ARRANGE
+      const { mutate } = server;
+      const defaultUserOptions = genUserOptions();
+      const newUser = {
+        ...defaultUserOptions,
+        email: "incorrectemail@test.com",
+      };
+      const expectedErrors = [
+        { field: "usernameOrEmail", message: "user does not exist!" },
+      ];
+
+      //ACT
+      const response = await mutate({
+        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
+        variables: {
+          usernameOrEmail: newUser.email,
+          password: newUser.password,
+        },
+      });
 
       const loginResponse: UserResponse = response.data.login;
       const errors = loginResponse.errors;

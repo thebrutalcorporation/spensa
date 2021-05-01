@@ -34,7 +34,7 @@ describe("Transaction Resolver", () => {
             expect((_b = registeredUserResponse.user) === null || _b === void 0 ? void 0 : _b.username).not.toBe(null);
             expect((_c = registeredUserResponse.user) === null || _c === void 0 ? void 0 : _c.username).toBe(dbUser === null || dbUser === void 0 ? void 0 : dbUser.username);
         }));
-        test("should log in a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
+        test("should log in a new user successfully with username ", () => __awaiter(void 0, void 0, void 0, function* () {
             const { mutate } = server;
             const user = factories_1.genUserOptions();
             yield registerUser(user.username, user.password, user.email);
@@ -42,6 +42,26 @@ describe("Transaction Resolver", () => {
                 mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
                 variables: {
                     usernameOrEmail: user.username,
+                    password: user.password,
+                },
+            });
+            const loginResponse = response.data.login;
+            const loggedInUser = loginResponse.user;
+            const dbUser = yield em.findOne(User_1.User, {
+                id: loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.id,
+            });
+            expect(loggedInUser).not.toBe(null);
+            expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.username).toBe(user.username);
+            expect(loggedInUser === null || loggedInUser === void 0 ? void 0 : loggedInUser.id).toBe(dbUser === null || dbUser === void 0 ? void 0 : dbUser.id);
+        }));
+        test("should log in a new user successfully with email ", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { mutate } = server;
+            const user = factories_1.genUserOptions();
+            yield registerUser(user.username, user.password, user.email);
+            const response = yield mutate({
+                mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
+                variables: {
+                    usernameOrEmail: user.email,
                     password: user.password,
                 },
             });
@@ -69,6 +89,18 @@ describe("Transaction Resolver", () => {
             expect(firstError).not.toBe(null);
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("username");
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be greater than 2");
+        }));
+        test("should not permit registration with invalid email", () => __awaiter(void 0, void 0, void 0, function* () {
+            const defaultUserOptions = factories_1.genUserOptions();
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { email: "improperlyformattedemail" });
+            const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
+            const errors = registeredUserResponse.errors;
+            const firstError = errors ? errors[0] : null;
+            expect(registeredUserResponse.user).toBe(null);
+            expect(errors).toHaveLength(1);
+            expect(firstError).not.toBe(null);
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("email");
+            expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("invalid email");
         }));
         test("should not permit registration with password with length < 6", () => __awaiter(void 0, void 0, void 0, function* () {
             const defaultUserOptions = factories_1.genUserOptions();
@@ -102,7 +134,7 @@ describe("Transaction Resolver", () => {
             const defaultUserOptions = factories_1.genUserOptions();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "nonexistent" });
             const expectedErrors = [
-                { field: "usernameOrEmail", message: "username does not exist!" },
+                { field: "usernameOrEmail", message: "user does not exist!" },
             ];
             const response = yield mutate({
                 mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
@@ -111,7 +143,26 @@ describe("Transaction Resolver", () => {
                     password: newUser.password,
                 },
             });
-            console.log(response.data);
+            const loginResponse = response.data.login;
+            const errors = loginResponse.errors;
+            expect(loginResponse.user).toBe(null);
+            expect(errors).not.toBe(null);
+            expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+        }));
+        test("should not permit login with incorrect email", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { mutate } = server;
+            const defaultUserOptions = factories_1.genUserOptions();
+            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { email: "incorrectemail@test.com" });
+            const expectedErrors = [
+                { field: "usernameOrEmail", message: "user does not exist!" },
+            ];
+            const response = yield mutate({
+                mutation: queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN,
+                variables: {
+                    usernameOrEmail: newUser.email,
+                    password: newUser.password,
+                },
+            });
             const loginResponse = response.data.login;
             const errors = loginResponse.errors;
             expect(loginResponse.user).toBe(null);
