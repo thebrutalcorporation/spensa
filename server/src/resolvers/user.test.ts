@@ -18,6 +18,7 @@ import { UserResponse } from "./user";
 import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
+import { validateEmail } from "../utils/validateEmail";
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
@@ -156,29 +157,41 @@ describe("Transaction Resolver", () => {
     test("should not permit registration with invalid email", async () => {
       //Arrange
       const defaultUserOptions = genUserOptions();
-      //currently the validation is simply checking that an @ exists.
-      //TODO: add a proper validation library.
-      const newUser = {
-        ...defaultUserOptions,
-        email: "improperlyformattedemail",
-      };
+      const invalidEmails = [
+        "email",
+        "email@",
+        "email@test",
+        "mail@gooogle.com",
+        "email@mailinator.com",
+      ];
 
       //Act
-      const registeredUserResponse = await registerUser(
-        newUser.username,
-        newUser.password,
-        newUser.email
+      const registrationResponses = await Promise.all(
+        invalidEmails.map(async (email) => {
+          const newUser = {
+            ...defaultUserOptions,
+            email,
+          };
+          const registeredUserResponse = await registerUser(
+            newUser.username,
+            newUser.password,
+            newUser.email
+          );
+          return registeredUserResponse;
+        })
       );
 
-      const errors = registeredUserResponse.errors;
-      const firstError = errors ? errors[0] : null;
-
       //assert
-      expect(registeredUserResponse.user).toBe(null);
-      expect(errors).toHaveLength(1);
-      expect(firstError).not.toBe(null);
-      expect(firstError?.field).toBe("email");
-      expect(firstError?.message).toBe("invalid email");
+      registrationResponses.forEach((response) => {
+        const errors = response.errors;
+        const firstError = errors ? errors[0] : null;
+
+        expect(response.user).toBe(null);
+        expect(errors).toHaveLength(1);
+        expect(firstError).not.toBe(null);
+        expect(firstError?.field).toBe("email");
+        expect(firstError?.message).toBe("invalid email");
+      });
     });
     test("should not permit registration with password with length < 6", async () => {
       //Arrange

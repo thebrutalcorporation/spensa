@@ -70,7 +70,7 @@ let UserResolver = class UserResolver {
     }
     register(options, { em, req }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const errors = validateRegister_1.validateRegister(options);
+            const errors = yield validateRegister_1.validateRegister(options);
             if (errors) {
                 return { errors };
             }

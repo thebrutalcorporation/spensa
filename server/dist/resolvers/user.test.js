@@ -92,15 +92,27 @@ describe("Transaction Resolver", () => {
         }));
         test("should not permit registration with invalid email", () => __awaiter(void 0, void 0, void 0, function* () {
             const defaultUserOptions = factories_1.genUserOptions();
-            const newUser = Object.assign(Object.assign({}, defaultUserOptions), { email: "improperlyformattedemail" });
-            const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
-            const errors = registeredUserResponse.errors;
-            const firstError = errors ? errors[0] : null;
-            expect(registeredUserResponse.user).toBe(null);
-            expect(errors).toHaveLength(1);
-            expect(firstError).not.toBe(null);
-            expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("email");
-            expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("invalid email");
+            const invalidEmails = [
+                "email",
+                "email@",
+                "email@test",
+                "mail@gooogle.com",
+                "email@mailinator.com",
+            ];
+            const registrationResponses = yield Promise.all(invalidEmails.map((email) => __awaiter(void 0, void 0, void 0, function* () {
+                const newUser = Object.assign(Object.assign({}, defaultUserOptions), { email });
+                const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
+                return registeredUserResponse;
+            })));
+            registrationResponses.forEach((response) => {
+                const errors = response.errors;
+                const firstError = errors ? errors[0] : null;
+                expect(response.user).toBe(null);
+                expect(errors).toHaveLength(1);
+                expect(firstError).not.toBe(null);
+                expect(firstError === null || firstError === void 0 ? void 0 : firstError.field).toBe("email");
+                expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("invalid email");
+            });
         }));
         test("should not permit registration with password with length < 6", () => __awaiter(void 0, void 0, void 0, function* () {
             const defaultUserOptions = factories_1.genUserOptions();

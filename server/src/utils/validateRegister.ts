@@ -1,8 +1,10 @@
 import { UsernamePasswordInput } from "../resolvers/UsernamePasswordInput";
+import { validateEmail } from "./validateEmail";
 
-export const validateRegister = (options: UsernamePasswordInput) => {
-  //@TODO: Add proper validation of email
-  if (!options.email.includes("@")) {
+export const validateRegister = async (options: UsernamePasswordInput) => {
+  const { valid: isEmailValid } = await validateEmail(options.email);
+
+  if (!isEmailValid) {
     return [
       {
         field: "email",
