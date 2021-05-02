@@ -76,6 +76,7 @@ describe("Transaction Resolver", () => {
         }));
         xtest("should return current user if logged in", () => __awaiter(void 0, void 0, void 0, function* () {
         }));
+        xtest("should log out a user successfull ", () => { });
     });
     describe("Registration Validations", () => {
         test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {

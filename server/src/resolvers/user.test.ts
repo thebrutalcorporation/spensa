@@ -18,7 +18,6 @@ import { UserResponse } from "./user";
 import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { validateEmail } from "../utils/validateEmail";
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
@@ -128,7 +127,8 @@ describe("Transaction Resolver", () => {
       // // console.log(res.data.me);
       // //ASSERT
       // expect(true).toBe(true);
-    });
+    }); //@TODO: write log in test
+    xtest("should log out a user successfull ", () => {}); //TODO: Write log out test
   });
 
   describe("Registration Validations", () => {
