@@ -5,14 +5,14 @@ import "dotenv-safe/config";
 import { ApolloServer } from "apollo-server-express";
 import { createSchema } from "./utils/createSchema";
 import { Context } from "./types/context";
-import redis from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
 import { COOKIE_NAME } from "./constants";
 
 const RedisStore = connectRedis(session);
-const redisClient = redis.createClient();
+const redis = new Redis();
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
@@ -41,7 +41,7 @@ const main = async () => {
       saveUninitialized: false, //avoids storing empty sessions; only stores if we have data set
       secret: "supersecretkey2342", //TODO: set as env variable
       store: new RedisStore({
-        client: redisClient,
+        client: redis,
         disableTouch: true,
       }),
     })
@@ -49,7 +49,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await createSchema(),
-    context: ({ req, res }): Context => ({ em: orm.em, req, res }),
+    context: ({ req, res }): Context => ({ em: orm.em, req, res, redis }),
   });
 
   apolloServer.applyMiddleware({

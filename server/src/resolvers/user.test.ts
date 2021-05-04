@@ -127,7 +127,7 @@ describe("Transaction Resolver", () => {
       // // console.log(res.data.me);
       // //ASSERT
       // expect(true).toBe(true);
-    }); //@TODO: write log in test
+    }); //TODO: write log in test
     xtest("should log out a user successfull ", () => {}); //TODO: Write log out test
   });
 
@@ -355,7 +355,7 @@ beforeAll(async () => {
     context: () => ({
       em,
       req: { session: {} },
-    }), //@TODO is this the best way?
+    }), //TODO is this the best way?
   });
 
   server = createTestClient(apolloServer);

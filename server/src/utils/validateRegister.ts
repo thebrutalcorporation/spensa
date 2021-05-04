@@ -21,7 +21,7 @@ export const validateRegister = async (options: UsernamePasswordInput) => {
     ];
   }
 
-  //@TODO: add validation to tests
+  //TODO: add validation to tests
   if (options.username.includes("@")) {
     return [
       {
@@ -32,7 +32,7 @@ export const validateRegister = async (options: UsernamePasswordInput) => {
   }
 
   if (options.password.length <= 5) {
-    //@TODO: add more robust password handling, perhaps magic links
+    //TODO: add more robust password handling, perhaps magic links
     return [
       {
         field: "password",

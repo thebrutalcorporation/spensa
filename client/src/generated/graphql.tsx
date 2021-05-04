@@ -25,6 +25,7 @@ export type Mutation = {
   createTransaction: Transaction;
   updateTransaction?: Maybe<Transaction>;
   deleteTransaction: Scalars['Boolean'];
+  ChangePassword: UserResponse;
   forgotPassword: Scalars['Boolean'];
   register: UserResponse;
   login: UserResponse;
@@ -45,6 +46,12 @@ export type MutationUpdateTransactionArgs = {
 
 export type MutationDeleteTransactionArgs = {
   id: Scalars['String'];
+};
+
+
+export type MutationChangePasswordArgs = {
+  newPassword: Scalars['String'];
+  token: Scalars['String'];
 };
 
 
@@ -104,9 +111,39 @@ export type UsernamePasswordInput = {
   email: Scalars['String'];
 };
 
+export type RegularErrorFragment = (
+  { __typename?: 'FieldError' }
+  & Pick<FieldError, 'field' | 'message'>
+);
+
 export type ShortUserFragment = (
   { __typename?: 'User' }
   & Pick<User, 'id' | 'username'>
+);
+
+export type UserResponseFragment = (
+  { __typename?: 'UserResponse' }
+  & { errors?: Maybe<Array<(
+    { __typename?: 'FieldError' }
+    & RegularErrorFragment
+  )>>, user?: Maybe<(
+    { __typename?: 'User' }
+    & ShortUserFragment
+  )> }
+);
+
+export type ChangePasswordMutationVariables = Exact<{
+  token: Scalars['String'];
+  newPassword: Scalars['String'];
+}>;
+
+
+export type ChangePasswordMutation = (
+  { __typename?: 'Mutation' }
+  & { ChangePassword: (
+    { __typename?: 'UserResponse' }
+    & UserResponseFragment
+  ) }
 );
 
 export type LoginMutationVariables = Exact<{
@@ -119,13 +156,7 @@ export type LoginMutation = (
   { __typename?: 'Mutation' }
   & { login: (
     { __typename?: 'UserResponse' }
-    & { errors?: Maybe<Array<(
-      { __typename?: 'FieldError' }
-      & Pick<FieldError, 'field' | 'message'>
-    )>>, user?: Maybe<(
-      { __typename?: 'User' }
-      & ShortUserFragment
-    )> }
+    & UserResponseFragment
   ) }
 );
 
@@ -146,13 +177,7 @@ export type RegisterMutation = (
   { __typename?: 'Mutation' }
   & { register: (
     { __typename?: 'UserResponse' }
-    & { user?: Maybe<(
-      { __typename?: 'User' }
-      & ShortUserFragment
-    )>, errors?: Maybe<Array<(
-      { __typename?: 'FieldError' }
-      & Pick<FieldError, 'field' | 'message'>
-    )>> }
+    & UserResponseFragment
   ) }
 );
 
@@ -178,25 +203,47 @@ export type MeQuery = (
   )> }
 );
 
+export const RegularErrorFragmentDoc = gql`
+    fragment RegularError on FieldError {
+  field
+  message
+}
+    `;
 export const ShortUserFragmentDoc = gql`
     fragment ShortUser on User {
   id
   username
 }
     `;
+export const UserResponseFragmentDoc = gql`
+    fragment UserResponse on UserResponse {
+  errors {
+    ...RegularError
+  }
+  user {
+    ...ShortUser
+  }
+}
+    ${RegularErrorFragmentDoc}
+${ShortUserFragmentDoc}`;
+export const ChangePasswordDocument = gql`
+    mutation ChangePassword($token: String!, $newPassword: String!) {
+  ChangePassword(token: $token, newPassword: $newPassword) {
+    ...UserResponse
+  }
+}
+    ${UserResponseFragmentDoc}`;
+
+export function useChangePasswordMutation() {
+  return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
+};
 export const LoginDocument = gql`
     mutation Login($usernameOrEmail: String!, $password: String!) {
   login(usernameOrEmail: $usernameOrEmail, password: $password) {
-    errors {
-      field
-      message
-    }
-    user {
-      ...ShortUser
-    }
+    ...UserResponse
   }
 }
-    ${ShortUserFragmentDoc}`;
+    ${UserResponseFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -213,16 +260,10 @@ export function useLogoutMutation() {
 export const RegisterDocument = gql`
     mutation register($options: UsernamePasswordInput!) {
   register(options: $options) {
-    user {
-      ...ShortUser
-    }
-    errors {
-      field
-      message
-    }
+    ...UserResponse
   }
 }
-    ${ShortUserFragmentDoc}`;
+    ${UserResponseFragmentDoc}`;
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
