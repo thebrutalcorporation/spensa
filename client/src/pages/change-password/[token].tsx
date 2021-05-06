@@ -2,8 +2,11 @@ import {
   Alert,
   AlertDescription,
   AlertIcon,
+  Box,
   Button,
   CloseButton,
+  Flex,
+  Link,
 } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { NextPage } from "next";
@@ -15,6 +18,7 @@ import Wrapper from "../../components/Wrapper";
 import { useChangePasswordMutation } from "../../generated/graphql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
 import { toErrorMap } from "../../utils/toErrorMap";
+import NextLink from "next/link";
 
 const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   const router = useRouter();
@@ -56,21 +60,29 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
                 />
               </Alert>
             )}
-            <InputField
-              name="newPassword"
-              placeholder="new password"
-              label="New Password"
-              type="password"
-            />
-
-            <Button
-              colorScheme="teal"
-              isLoading={isSubmitting}
-              mt={4}
-              type="submit"
-            >
-              Change Password
-            </Button>
+            <Box>
+              <InputField
+                name="newPassword"
+                placeholder="new password"
+                label="New Password"
+                type="password"
+              />
+            </Box>
+            <Flex alignItems="baseline">
+              <Button
+                colorScheme="teal"
+                isLoading={isSubmitting}
+                mt={4}
+                type="submit"
+              >
+                Change Password
+              </Button>
+              {tokenError && (
+                <NextLink href="/forgot-password">
+                  <Link ml={3}>Get a New Password Token</Link>
+                </NextLink>
+              )}
+            </Flex>
           </Form>
         )}
       </Formik>
