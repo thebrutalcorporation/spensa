@@ -75,7 +75,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const loggedInUser = loginResponse.user;
 
       const dbUser = await em.findOne(User, {
@@ -103,7 +103,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const loggedInUser = loginResponse.user;
 
       const dbUser = await em.findOne(User, {
@@ -136,12 +136,12 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const loggedInUser = loginResponse.user;
 
       //ACT
       const res = await testClientQuery(USER_QUERIES_AND_MUTATIONS.ME);
-      const me = res.data?.me;
+      const me = (res.data as any)?.me;
 
       //ASSERT
       expect(me.id).toBe(loggedInUser?.id);
@@ -168,7 +168,7 @@ describe("User Resolver", () => {
       );
 
       //assert
-      expect(logoutResponse.data?.logout).toBe(true);
+      expect((logoutResponse.data as any)?.logout).toBe(true);
     });
     test("should send a forgot password email if requested ", async () => {
       //ARRANGE
@@ -188,7 +188,7 @@ describe("User Resolver", () => {
 
       //assert
       expect(sendEmail).toHaveBeenCalledTimes(1);
-      expect(forgotPasswordResponse.data?.forgotPassword).toBe(true);
+      expect((forgotPasswordResponse.data as any)?.forgotPassword).toBe(true);
     });
     xtest("should allow users to change their password", async () => {
       //ARRANGE
@@ -231,7 +231,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const oldPwdLoginAttempt = loginResponseOldPassword.data?.login;
+      const oldPwdLoginAttempt = (loginResponseOldPassword.data as any)?.login;
 
       //This login attempt uses the new password and should succeed
       const loginResponseNewPassword = await testClientMutate(
@@ -244,12 +244,14 @@ describe("User Resolver", () => {
         }
       );
 
-      const newPwdLoginAttempt = loginResponseNewPassword.data?.login;
+      const newPwdLoginAttempt = (loginResponseNewPassword.data as any)?.login;
 
-      expect(changePasswordResponse.data?.ChangePassword.user).not.toBe(null);
-      expect(changePasswordResponse.data?.ChangePassword.user.username).toBe(
-        user.username
-      );
+      expect(
+        (changePasswordResponse.data as any)?.ChangePassword.user
+      ).not.toBe(null);
+      expect(
+        (changePasswordResponse.data as any)?.ChangePassword.user.username
+      ).toBe(user.username);
       expect(oldPwdLoginAttempt.user).toBe(null);
       expect(newPwdLoginAttempt.user).not.toBe(null);
       expect(newPwdLoginAttempt.user.username).toBe(user.username);
@@ -392,7 +394,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -422,7 +424,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -458,7 +460,7 @@ describe("User Resolver", () => {
         }
       );
 
-      const loginResponse: UserResponse = response.data?.login;
+      const loginResponse: UserResponse = (response.data as any)?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -517,7 +519,7 @@ async function registerUser(username: string, password: string, email: string) {
     variables: { options: userToCreate },
   });
 
-  const userResponse: UserResponse = response.data?.register; //TODO: Fix this type error
+  const userResponse: UserResponse = (response.data as any)?.register;
 
   return userResponse;
 }
