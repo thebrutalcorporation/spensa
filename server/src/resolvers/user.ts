@@ -38,7 +38,6 @@ export class UserResponse {
 @Resolver()
 export class UserResolver {
   @Mutation(() => UserResponse)
-  //TODO: write test case for changePassword resolver function.
   async ChangePassword(
     @Arg("token") token: string,
     @Arg("newPassword") newPassword: string,
@@ -107,7 +106,7 @@ export class UserResolver {
       return false;
     }
 
-    const token = v4(); //generate token as uuid
+    const token = v4(); //generate token as uuids
 
     //reset token expires in 3-days
     await redis.set(

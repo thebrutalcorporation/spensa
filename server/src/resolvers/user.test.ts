@@ -21,6 +21,7 @@ import { Context } from "../types/context";
 import { createSchema } from "../utils/createSchema";
 import { UserResponse } from "./user";
 import { sendEmail } from "../utils/sendEmail";
+import { v4 } from "uuid";
 
 jest.mock("../utils/sendEmail", () => {
   return {
@@ -188,6 +189,70 @@ describe("User Resolver", () => {
       //assert
       expect(sendEmail).toHaveBeenCalledTimes(1);
       expect(forgotPasswordResponse.data?.forgotPassword).toBe(true);
+    });
+    xtest("should allow users to change their password", async () => {
+      //ARRANGE
+      (v4 as jest.Mock).mockImplementation(
+        () => "e4b3a253-a1d1-4331-bf45-eb68afeb91b9"
+      );
+
+      //gen random user
+      const user = genUserOptions();
+
+      //register new user
+      await registerUser(user.username, user.password, user.email);
+
+      //trigger forgot password to associate token with user
+      await testClientMutate(USER_QUERIES_AND_MUTATIONS.FORGOT_PASSWORD, {
+        variables: { email: user.email },
+      });
+
+      //generate mocked token and new password
+      const token = v4();
+      const newPassword = "newPassword911";
+
+      //ACT
+      const changePasswordResponse = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.CHANGE_PASSWORD,
+        {
+          variables: { token, newPassword },
+        }
+      );
+
+      //ASSERT
+      //This login attempt uses the old password and should fail
+      const loginResponseOldPassword = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: user.username,
+            password: user.password,
+          },
+        }
+      );
+
+      const oldPwdLoginAttempt = loginResponseOldPassword.data?.login;
+
+      //This login attempt uses the new password and should succeed
+      const loginResponseNewPassword = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: user.username,
+            password: newPassword,
+          },
+        }
+      );
+
+      const newPwdLoginAttempt = loginResponseNewPassword.data?.login;
+
+      expect(changePasswordResponse.data?.ChangePassword.user).not.toBe(null);
+      expect(changePasswordResponse.data?.ChangePassword.user.username).toBe(
+        user.username
+      );
+      expect(oldPwdLoginAttempt.user).toBe(null);
+      expect(newPwdLoginAttempt.user).not.toBe(null);
+      expect(newPwdLoginAttempt.user.username).toBe(user.username);
     });
   });
 
@@ -402,6 +467,10 @@ describe("User Resolver", () => {
       expect(errors).toEqual(expect.arrayContaining(expectedErrors));
     });
   });
+});
+
+beforeEach(() => {
+  jest.resetAllMocks();
 });
 
 beforeAll(async () => {

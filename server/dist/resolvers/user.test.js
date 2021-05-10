@@ -22,6 +22,7 @@ const queries_mutations_1 = require("../test-utils/queries-mutations");
 const testConn_1 = require("../test-utils/testConn");
 const createSchema_1 = require("../utils/createSchema");
 const sendEmail_1 = require("../utils/sendEmail");
+const uuid_1 = require("uuid");
 jest.mock("../utils/sendEmail", () => {
     return {
         sendEmail: jest.fn(),
@@ -124,6 +125,39 @@ describe("User Resolver", () => {
             });
             expect(sendEmail_1.sendEmail).toHaveBeenCalledTimes(1);
             expect((_j = forgotPasswordResponse.data) === null || _j === void 0 ? void 0 : _j.forgotPassword).toBe(true);
+        }));
+        xtest("should allow users to change their password", () => __awaiter(void 0, void 0, void 0, function* () {
+            var _k, _l, _m, _o;
+            uuid_1.v4.mockImplementation(() => "e4b3a253-a1d1-4331-bf45-eb68afeb91b9");
+            const user = factories_1.genUserOptions();
+            yield registerUser(user.username, user.password, user.email);
+            yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.FORGOT_PASSWORD, {
+                variables: { email: user.email },
+            });
+            const token = uuid_1.v4();
+            const newPassword = "newPassword911";
+            const changePasswordResponse = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.CHANGE_PASSWORD, {
+                variables: { token, newPassword },
+            });
+            const loginResponseOldPassword = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN, {
+                variables: {
+                    usernameOrEmail: user.username,
+                    password: user.password,
+                },
+            });
+            const oldPwdLoginAttempt = (_k = loginResponseOldPassword.data) === null || _k === void 0 ? void 0 : _k.login;
+            const loginResponseNewPassword = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN, {
+                variables: {
+                    usernameOrEmail: user.username,
+                    password: newPassword,
+                },
+            });
+            const newPwdLoginAttempt = (_l = loginResponseNewPassword.data) === null || _l === void 0 ? void 0 : _l.login;
+            expect((_m = changePasswordResponse.data) === null || _m === void 0 ? void 0 : _m.ChangePassword.user).not.toBe(null);
+            expect((_o = changePasswordResponse.data) === null || _o === void 0 ? void 0 : _o.ChangePassword.user.username).toBe(user.username);
+            expect(oldPwdLoginAttempt.user).toBe(null);
+            expect(newPwdLoginAttempt.user).not.toBe(null);
+            expect(newPwdLoginAttempt.user.username).toBe(user.username);
         }));
     });
     describe("Registration Validations", () => {
@@ -247,6 +281,9 @@ describe("User Resolver", () => {
             expect(errors).toEqual(expect.arrayContaining(expectedErrors));
         }));
     });
+});
+beforeEach(() => {
+    jest.resetAllMocks();
 });
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     dbConn = yield testConn_1.testConn();
