@@ -1,29 +1,41 @@
 import {
-  createTestClient,
-  ApolloServerTestClient,
-} from "apollo-server-testing";
-
-import "reflect-metadata";
-import {
   Connection,
   EntityManager,
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
-
-import { testConn } from "../test-utils/testConn";
 import { ApolloServer } from "apollo-server-express";
-import { createSchema } from "../utils/createSchema";
-import { UserResponse } from "./user";
+import {
+  createTestClient,
+  TestQuery,
+  TestSetOptions,
+} from "apollo-server-integration-testing";
+import Redis from "ioredis";
+
+import "reflect-metadata";
 import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
+import { testConn } from "../test-utils/testConn";
+import { Context } from "../types/context";
+import { createSchema } from "../utils/createSchema";
+import { UserResponse } from "./user";
+import { sendEmail } from "../utils/sendEmail";
+
+jest.mock("../utils/sendEmail", () => {
+  return {
+    sendEmail: jest.fn(),
+  };
+});
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
-let server: ApolloServerTestClient;
+let apolloServer: ApolloServer;
+let testClientQuery: TestQuery;
+let testClientMutate: TestQuery;
+let testClientSetOptions: TestSetOptions;
 
-describe("Transaction Resolver", () => {
+describe("User Resolver", () => {
   describe("Happy Path", () => {
     test("should register a new user successfully ", async () => {
       //Arrange
@@ -48,21 +60,21 @@ describe("Transaction Resolver", () => {
     });
     test("should log in a new user successfully with username ", async () => {
       //ARRANGE
-      const { mutate } = server;
-
-      //[ARRANGE] Register user that will be logged in
       const user = genUserOptions();
       await registerUser(user.username, user.password, user.email);
 
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          usernameOrEmail: user.username,
-          password: user.password,
-        },
-      });
+      //ACT
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: user.username,
+            password: user.password,
+          },
+        }
+      );
 
-      const loginResponse: UserResponse = response.data.login;
+      const loginResponse: UserResponse = response.data?.login;
       const loggedInUser = loginResponse.user;
 
       const dbUser = await em.findOne(User, {
@@ -76,21 +88,21 @@ describe("Transaction Resolver", () => {
     });
     test("should log in a new user successfully with email ", async () => {
       //ARRANGE
-      const { mutate } = server;
-
-      //[ARRANGE] Register user that will be logged in
       const user = genUserOptions();
       await registerUser(user.username, user.password, user.email);
 
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          usernameOrEmail: user.email,
-          password: user.password,
-        },
-      });
+      //ACT
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: user.email,
+            password: user.password,
+          },
+        }
+      );
 
-      const loginResponse: UserResponse = response.data.login;
+      const loginResponse: UserResponse = response.data?.login;
       const loggedInUser = loginResponse.user;
 
       const dbUser = await em.findOne(User, {
@@ -102,33 +114,81 @@ describe("Transaction Resolver", () => {
       expect(loggedInUser?.username).toBe(user.username);
       expect(loggedInUser?.id).toBe(dbUser?.id);
     });
-    xtest("should return current user if logged in", async () => {
-      // //session cookie set on user's machine if logged in.
-      // //session exists if cookie exists
-      // //ARRANGE
-      // const { query, mutate } = server;
-      // const userOptions = genUserOptions();
-      // await registerUser(userOptions.username, userOptions.password);
-      // const response = await mutate({
-      //   mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-      //   variables: {
-      //     options: {
-      //       username: userOptions.username,
-      //       password: userOptions.password,
-      //     },
-      //   },
-      // });
-      // const loginResponse: UserResponse = response.data.login;
-      // const loggedInUser = loginResponse.user;
-      // //ACT
-      // const res = await query({
-      //   query: USER_QUERIES_AND_MUTATIONS.ME,
-      // });
-      // // console.log(res.data.me);
-      // //ASSERT
-      // expect(true).toBe(true);
-    }); //TODO: write log in test
-    xtest("should log out a user successfull ", () => {}); //TODO: Write log out test
+    test("should return current user if logged in", async () => {
+      //session cookie set on user's machine if logged in.
+      //session exists if cookie exists
+      //ARRANGE
+      const userOptions = genUserOptions();
+      await registerUser(
+        userOptions.username,
+        userOptions.password,
+        userOptions.email
+      );
+
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: userOptions.username,
+            password: userOptions.password,
+          },
+        }
+      );
+
+      const loginResponse: UserResponse = response.data?.login;
+      const loggedInUser = loginResponse.user;
+
+      //ACT
+      const res = await testClientQuery(USER_QUERIES_AND_MUTATIONS.ME);
+      const me = res.data?.me;
+
+      //ASSERT
+      expect(me.id).toBe(loggedInUser?.id);
+    });
+    test("should log out a user successfull ", async () => {
+      //ARRANGE
+      //Set mocks
+      testClientSetOptions({
+        request: {
+          session: {
+            destroy: jest.fn((cb) => cb()),
+          },
+        },
+      });
+      //gen random user
+      const user = genUserOptions();
+
+      //register new user, which logs in automatically by default
+      await registerUser(user.username, user.password, user.email);
+
+      //ACT
+      const logoutResponse = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGOUT
+      );
+
+      //assert
+      expect(logoutResponse.data?.logout).toBe(true);
+    });
+    test("should send a forgot password email if requested ", async () => {
+      //ARRANGE
+      //gen random user
+      const user = genUserOptions();
+
+      //register new user
+      await registerUser(user.username, user.password, user.email);
+
+      //ACT
+      const forgotPasswordResponse = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.FORGOT_PASSWORD,
+        {
+          variables: { email: user.email },
+        }
+      );
+
+      //assert
+      expect(sendEmail).toHaveBeenCalledTimes(1);
+      expect(forgotPasswordResponse.data?.forgotPassword).toBe(true);
+    });
   });
 
   describe("Registration Validations", () => {
@@ -250,7 +310,6 @@ describe("Transaction Resolver", () => {
   describe("Login Validations", () => {
     test("should not permit login with incorrect username", async () => {
       //ARRANGE
-      const { mutate } = server;
       const defaultUserOptions = genUserOptions();
       const newUser = { ...defaultUserOptions, username: "nonexistent" };
       const expectedErrors = [
@@ -258,15 +317,17 @@ describe("Transaction Resolver", () => {
       ];
 
       //ACT
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          usernameOrEmail: newUser.username,
-          password: newUser.password,
-        },
-      });
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: newUser.username,
+            password: newUser.password,
+          },
+        }
+      );
 
-      const loginResponse: UserResponse = response.data.login;
+      const loginResponse: UserResponse = response.data?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -276,7 +337,6 @@ describe("Transaction Resolver", () => {
     });
     test("should not permit login with incorrect email", async () => {
       //ARRANGE
-      const { mutate } = server;
       const defaultUserOptions = genUserOptions();
       const newUser = {
         ...defaultUserOptions,
@@ -287,15 +347,17 @@ describe("Transaction Resolver", () => {
       ];
 
       //ACT
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          usernameOrEmail: newUser.email,
-          password: newUser.password,
-        },
-      });
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: newUser.email,
+            password: newUser.password,
+          },
+        }
+      );
 
-      const loginResponse: UserResponse = response.data.login;
+      const loginResponse: UserResponse = response.data?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -305,7 +367,6 @@ describe("Transaction Resolver", () => {
     });
     test("should not permit login with incorrect password", async () => {
       //ARRANGE
-      const { mutate } = server;
       const userToRegister = genUserOptions();
       //register user with a username + password
       await registerUser(
@@ -322,15 +383,17 @@ describe("Transaction Resolver", () => {
       const expectedErrors = [{ field: "password", message: "Invalid login!" }];
 
       //ACT
-      const response = await mutate({
-        mutation: USER_QUERIES_AND_MUTATIONS.LOGIN,
-        variables: {
-          usernameOrEmail: userWrongPassword.username,
-          password: userWrongPassword.password,
-        },
-      });
+      const response = await testClientMutate(
+        USER_QUERIES_AND_MUTATIONS.LOGIN,
+        {
+          variables: {
+            usernameOrEmail: userWrongPassword.username,
+            password: userWrongPassword.password,
+          },
+        }
+      );
 
-      const loginResponse: UserResponse = response.data.login;
+      const loginResponse: UserResponse = response.data?.login;
       const errors = loginResponse.errors;
 
       //ASSERT
@@ -346,19 +409,26 @@ beforeAll(async () => {
   dbConn = await testConn();
   em = dbConn.em;
 
-  //TODO: in order to inject context, you need to make creating a test server something you can invoke FOR EACH test
-  //Check https://github.com/apollographql/fullstack-tutorial/blob/b25df2e9fd45ec5bcd07e4c2f34b79b7a8bd0817/final/server/src/__tests__/__utils.js#L21
-  //TODO: Or just re-write using this project which solves the req in context issue: https://github.com/zapier/apollo-server-integration-testing
-  //Setup an Apollo test server
-  const apolloServer = new ApolloServer({
+  const redis = new Redis();
+
+  apolloServer = new ApolloServer({
     schema: await createSchema(),
-    context: () => ({
-      em,
-      req: { session: {} },
-    }), //TODO is this the best way?
+    context: ({ req, res }): Context => ({ em, req, res, redis }),
   });
 
-  server = createTestClient(apolloServer);
+  const { query, mutate, setOptions } = createTestClient({
+    apolloServer,
+    extendMockRequest: {
+      session: {
+        userId: null,
+      },
+    },
+  });
+
+  //Set values to variables for use in other tests
+  testClientMutate = mutate;
+  testClientQuery = query;
+  testClientSetOptions = setOptions;
 
   await em.nativeDelete(User, {}); //clear all users in test db
 });
@@ -368,19 +438,17 @@ afterAll(async () => {
 });
 
 async function registerUser(username: string, password: string, email: string) {
-  const { mutate } = server;
   const userToCreate = {
     username,
     password,
     email,
   };
 
-  const response = await mutate({
-    mutation: USER_QUERIES_AND_MUTATIONS.REGISTER,
+  const response = await testClientMutate(USER_QUERIES_AND_MUTATIONS.REGISTER, {
     variables: { options: userToCreate },
   });
 
-  const userResponse: UserResponse = response.data.register;
+  const userResponse: UserResponse = response.data?.register; //TODO: Fix this type error
 
   return userResponse;
 }
