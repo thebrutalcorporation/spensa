@@ -10,7 +10,7 @@ function genUserOptions() {
     const lastName = es_1.default.name.lastName().toLowerCase();
     const fullName = `${firstName}_${lastName}`;
     const password = es_1.default.internet.password();
-    const email = es_1.default.internet.email();
+    const email = es_1.default.internet.email().toLowerCase();
     return {
         username: fullName,
         password,
