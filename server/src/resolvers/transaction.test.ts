@@ -1,7 +1,8 @@
 import {
   createTestClient,
-  ApolloServerTestClient,
-} from "apollo-server-testing";
+  TestQuery,
+  TestSetOptions,
+} from "apollo-server-integration-testing";
 
 import "reflect-metadata";
 import {
@@ -13,13 +14,18 @@ import {
 import faker from "faker/locale/es";
 import { testConn } from "../test-utils/testConn";
 import { ApolloServer } from "apollo-server-express";
+import Redis from "ioredis";
 import { createSchema } from "../utils/createSchema";
 import { Transaction } from "../entities/Transaction";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
+import { Context } from "../types/context";
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
-let server: ApolloServerTestClient;
+let apolloServer: ApolloServer;
+let testClientQuery: TestQuery;
+let testClientMutate: TestQuery;
+let testClientSetOptions: TestSetOptions;
 
 describe("Transaction Resolver", () => {
   describe("Happy Path", () => {
@@ -30,13 +36,16 @@ describe("Transaction Resolver", () => {
       };
 
       //ACT
-      const { mutate } = server;
-      const response = await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
-        variables: txnToBeCreatedVariables,
-      });
 
-      let newlyCreatedTxn: Transaction = response.data.createTransaction;
+      const response = await testClientMutate(
+        TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        {
+          variables: txnToBeCreatedVariables,
+        }
+      );
+
+      let newlyCreatedTxn: Transaction = (response.data as any)
+        ?.createTransaction;
       //API returns timestamp as unix in string format. We need to get a proper date format for comparison
       newlyCreatedTxn.createdAt = new Date(Number(newlyCreatedTxn.createdAt));
       newlyCreatedTxn.updatedAt = new Date(Number(newlyCreatedTxn.updatedAt));
@@ -55,28 +64,22 @@ describe("Transaction Resolver", () => {
 
     test("should return all transactions", async () => {
       //ARRANGE
-      const { query, mutate } = server;
-
       //create 2 txns with diff titles
-      await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+      await testClientMutate(TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
         variables: {
           title: faker.company.companyName(),
         },
       });
 
-      await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+      await testClientMutate(TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
         variables: {
           title: faker.company.companyName(),
         },
       });
 
       //ACT
-      const res = await query({
-        query: TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS,
-      });
-      const transactions: Transaction[] = res.data.transactions;
+      const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS);
+      const transactions: Transaction[] = (res.data as any)?.transactions;
 
       //query all txns directly from db
       const dbTxns = await em.find(Transaction, {});
@@ -92,26 +95,25 @@ describe("Transaction Resolver", () => {
     });
     test("should return a transaction by id", async () => {
       //ARRANGE
-      const { query, mutate } = server;
-
       //create a new txn
-      const response = await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
-        variables: {
-          title: faker.company.companyName(),
-        },
-      });
+      const response = await testClientMutate(
+        TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        {
+          variables: {
+            title: faker.company.companyName(),
+          },
+        }
+      );
 
-      const newlyCreatedTxn = response.data.createTransaction;
+      const newlyCreatedTxn = (response.data as any)?.createTransaction;
 
       //ACT
       //query txn by id
-      const res = await query({
-        query: TXN_QUERIES_AND_MUTATIONS.GET_TXN,
+      const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.GET_TXN, {
         variables: { id: newlyCreatedTxn.id },
       });
 
-      const returnedTxn = res.data.transaction;
+      const returnedTxn = (res.data as any).transaction;
 
       //query txn directly from db
       const [dbTxn]: Transaction[] = await em.find(Transaction, {
@@ -126,28 +128,27 @@ describe("Transaction Resolver", () => {
     });
     test("should update a transaction", async () => {
       //ARRANGE
-      const { query, mutate } = server;
-
       //create a new txn
-      const response = await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
-        variables: {
-          title: faker.company.companyName(),
-        },
-      });
+      const response = await testClientMutate(
+        TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        {
+          variables: {
+            title: faker.company.companyName(),
+          },
+        }
+      );
 
-      const newlyCreatedTxn = response.data.createTransaction;
+      const newlyCreatedTxn = (response.data as any).createTransaction;
 
       //new title we will use to update txn
       const newTitle = faker.company.companyName();
 
       //ACT
-      const res = await query({
-        query: TXN_QUERIES_AND_MUTATIONS.UPDATE_TXN,
+      const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.UPDATE_TXN, {
         variables: { id: newlyCreatedTxn.id, title: newTitle },
       });
 
-      const updatedTxn: Transaction = res.data.updateTransaction;
+      const updatedTxn: Transaction = (res.data as any).updateTransaction;
 
       //query txn directly from db
       const [dbTxn] = await em.find(Transaction, { id: updatedTxn.id });
@@ -161,25 +162,24 @@ describe("Transaction Resolver", () => {
     });
     test("should delete a transaction", async () => {
       //ARRANGE
-      const { query, mutate } = server;
-
       //create a new txn to delete
-      const response = await mutate({
-        mutation: TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
-        variables: {
-          title: faker.company.companyName(),
-        },
-      });
+      const response = await testClientMutate(
+        TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        {
+          variables: {
+            title: faker.company.companyName(),
+          },
+        }
+      );
 
-      const newlyCreatedTxn = response.data.createTransaction;
+      const newlyCreatedTxn = (response.data as any).createTransaction;
 
       //ACT
       //Delete txn by id
-      const res = await query({
-        query: TXN_QUERIES_AND_MUTATIONS.DELETE_TXN,
+      const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.DELETE_TXN, {
         variables: { id: newlyCreatedTxn.id },
       });
-      const isTxnDeleted: Boolean = res.data.deleteTransaction;
+      const isTxnDeleted: Boolean = (res.data as any).deleteTransaction;
 
       //should be undefined after deletion
       const [dbTxn] = await em.find(Transaction, { id: newlyCreatedTxn.id });
@@ -196,16 +196,27 @@ beforeAll(async () => {
   dbConn = await testConn();
   em = dbConn.em;
 
-  //Setup an Apollo test server
-  const apolloServer = new ApolloServer({
+  const redis = new Redis();
+
+  apolloServer = new ApolloServer({
     schema: await createSchema(),
-    context: () => ({ em }),
+    context: ({ req, res }): Context => ({ em, req, res, redis }),
   });
 
-  server = createTestClient(apolloServer);
-});
+  const { query, mutate, setOptions } = createTestClient({
+    apolloServer,
+    extendMockRequest: {
+      session: {
+        userId: null,
+      },
+    },
+  });
 
-beforeEach(async () => {
+  //Set values to variables for use in other tests
+  testClientMutate = mutate;
+  testClientQuery = query;
+  testClientSetOptions = setOptions;
+
   await em.nativeDelete(Transaction, {}); //clear all txns in test db
 });
 
