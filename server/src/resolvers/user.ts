@@ -12,7 +12,7 @@ import { v4 } from "uuid";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 
 import { User } from "../entities/User";
-import { Context } from "../types/context";
+import { Context } from "../utils/interfaces/context";
 import { sendEmail } from "../utils/sendEmail";
 import { validateRegister } from "../utils/validateRegister";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";

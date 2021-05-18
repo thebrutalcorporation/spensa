@@ -17,7 +17,7 @@ import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
 import { testConn } from "../test-utils/testConn";
-import { Context } from "../types/context";
+import { Context } from "../utils/interfaces/context";
 import { createSchema } from "../utils/createSchema";
 import { UserResponse } from "./user";
 import { sendEmail } from "../utils/sendEmail";

@@ -18,7 +18,7 @@ import Redis from "ioredis";
 import { createSchema } from "../utils/createSchema";
 import { Transaction } from "../entities/Transaction";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { Context } from "../types/context";
+import { Context } from "../utils/interfaces/context";
 
 let dbConn: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
