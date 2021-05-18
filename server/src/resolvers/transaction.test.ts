@@ -1,31 +1,25 @@
 import {
-  createTestClient,
-  TestQuery,
-  TestSetOptions,
-} from "apollo-server-integration-testing";
-
-import "reflect-metadata";
-import {
   Connection,
   EntityManager,
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
+import { createTestClient, TestQuery } from "apollo-server-integration-testing";
+import "dotenv/config";
 import faker from "faker/locale/es";
-import { testConn } from "../test-utils/testConn";
-import { ApolloServer } from "apollo-server-express";
-import Redis from "ioredis";
-import { createSchema } from "../utils/createSchema";
+import { Server } from "http";
+import "reflect-metadata";
+import Application from "../application";
 import { Transaction } from "../entities/Transaction";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { Context } from "../utils/interfaces/context";
+import { clearDatabase } from "../test-utils/services/clearDatabase";
+import { loadFixtures } from "../test-utils/services/loadFixtures";
 
-let dbConn: MikroORM<IDatabaseDriver<Connection>>;
+let serverConnection: Server;
+let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
-let apolloServer: ApolloServer;
 let testClientQuery: TestQuery;
 let testClientMutate: TestQuery;
-let testClientSetOptions: TestSetOptions;
 
 describe("Transaction Resolver", () => {
   describe("Happy Path", () => {
@@ -46,20 +40,12 @@ describe("Transaction Resolver", () => {
 
       let newlyCreatedTxn: Transaction = (response.data as any)
         ?.createTransaction;
-      //API returns timestamp as unix in string format. We need to get a proper date format for comparison
-      newlyCreatedTxn.createdAt = new Date(Number(newlyCreatedTxn.createdAt));
-      newlyCreatedTxn.updatedAt = new Date(Number(newlyCreatedTxn.updatedAt));
 
+      //ASSERT
       let dbTxn = await em.findOne(Transaction, {
         id: newlyCreatedTxn.id,
       });
-
-      //to remove wrappers to objects that would cause our comparison to fail
-      newlyCreatedTxn = JSON.parse(JSON.stringify(newlyCreatedTxn));
-      dbTxn = JSON.parse(JSON.stringify({ ...dbTxn }));
-
-      //ASSERT
-      expect(newlyCreatedTxn).toEqual(dbTxn); //API returned object equal to object in database?
+      expect(newlyCreatedTxn.id).toBe(dbTxn?.id);
     });
 
     test("should return all transactions", async () => {
@@ -192,18 +178,18 @@ describe("Transaction Resolver", () => {
 });
 
 beforeAll(async () => {
-  //set up database connection
-  dbConn = await testConn();
-  em = dbConn.em;
+  const application = Application();
+  await application.connect();
+  await application.init();
+  orm = await application.getOrm();
+  const apolloServer = await application.getApolloServer();
 
-  const redis = new Redis();
+  // make available to other scopes
+  serverConnection = await application.getServerConnection();
+  serverConnection.close();
+  em = orm.em.fork();
 
-  apolloServer = new ApolloServer({
-    schema: await createSchema(),
-    context: ({ req, res }): Context => ({ em, req, res, redis }),
-  });
-
-  const { query, mutate, setOptions } = createTestClient({
+  const { query, mutate } = createTestClient({
     apolloServer,
     extendMockRequest: {
       session: {
@@ -215,11 +201,14 @@ beforeAll(async () => {
   //Set values to variables for use in other tests
   testClientMutate = mutate;
   testClientQuery = query;
-  testClientSetOptions = setOptions;
+});
 
-  await em.nativeDelete(Transaction, {}); //clear all txns in test db
+beforeEach(async () => {
+  await clearDatabase(orm);
+  await loadFixtures(orm);
 });
 
 afterAll(async () => {
-  await dbConn.close();
+  await orm.close();
+  serverConnection.close();
 });

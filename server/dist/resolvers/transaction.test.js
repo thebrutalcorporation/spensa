@@ -13,20 +13,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const apollo_server_integration_testing_1 = require("apollo-server-integration-testing");
-require("reflect-metadata");
+require("dotenv/config");
 const es_1 = __importDefault(require("faker/locale/es"));
-const testConn_1 = require("../test-utils/testConn");
-const apollo_server_express_1 = require("apollo-server-express");
-const ioredis_1 = __importDefault(require("ioredis"));
-const createSchema_1 = require("../utils/createSchema");
+require("reflect-metadata");
+const application_1 = __importDefault(require("../application"));
 const Transaction_1 = require("../entities/Transaction");
 const queries_mutations_1 = require("../test-utils/queries-mutations");
-let dbConn;
+const clearDatabase_1 = require("../test-utils/services/clearDatabase");
+const loadFixtures_1 = require("../test-utils/services/loadFixtures");
+let serverConnection;
+let orm;
 let em;
-let apolloServer;
 let testClientQuery;
 let testClientMutate;
-let testClientSetOptions;
 describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,14 +37,10 @@ describe("Transaction Resolver", () => {
                 variables: txnToBeCreatedVariables,
             });
             let newlyCreatedTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
-            newlyCreatedTxn.createdAt = new Date(Number(newlyCreatedTxn.createdAt));
-            newlyCreatedTxn.updatedAt = new Date(Number(newlyCreatedTxn.updatedAt));
             let dbTxn = yield em.findOne(Transaction_1.Transaction, {
                 id: newlyCreatedTxn.id,
             });
-            newlyCreatedTxn = JSON.parse(JSON.stringify(newlyCreatedTxn));
-            dbTxn = JSON.parse(JSON.stringify(Object.assign({}, dbTxn)));
-            expect(newlyCreatedTxn).toEqual(dbTxn);
+            expect(newlyCreatedTxn.id).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.id);
         }));
         test("should return all transactions", () => __awaiter(void 0, void 0, void 0, function* () {
             var _b;
@@ -124,14 +119,15 @@ describe("Transaction Resolver", () => {
     });
 });
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    dbConn = yield testConn_1.testConn();
-    em = dbConn.em;
-    const redis = new ioredis_1.default();
-    apolloServer = new apollo_server_express_1.ApolloServer({
-        schema: yield createSchema_1.createSchema(),
-        context: ({ req, res }) => ({ em, req, res, redis }),
-    });
-    const { query, mutate, setOptions } = apollo_server_integration_testing_1.createTestClient({
+    const application = application_1.default();
+    yield application.connect();
+    yield application.init();
+    orm = yield application.getOrm();
+    const apolloServer = yield application.getApolloServer();
+    serverConnection = yield application.getServerConnection();
+    serverConnection.close();
+    em = orm.em.fork();
+    const { query, mutate } = apollo_server_integration_testing_1.createTestClient({
         apolloServer,
         extendMockRequest: {
             session: {
@@ -141,10 +137,13 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     });
     testClientMutate = mutate;
     testClientQuery = query;
-    testClientSetOptions = setOptions;
-    yield em.nativeDelete(Transaction_1.Transaction, {});
+}));
+beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield clearDatabase_1.clearDatabase(orm);
+    yield loadFixtures_1.loadFixtures(orm);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield dbConn.close();
+    yield orm.close();
+    serverConnection.close();
 }));
 //# sourceMappingURL=transaction.test.js.map
