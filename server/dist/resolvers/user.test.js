@@ -12,25 +12,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const apollo_server_express_1 = require("apollo-server-express");
 const apollo_server_integration_testing_1 = require("apollo-server-integration-testing");
-const ioredis_1 = __importDefault(require("ioredis"));
+require("dotenv/config");
 require("reflect-metadata");
+const uuid_1 = require("uuid");
+const application_1 = __importDefault(require("../application"));
 const User_1 = require("../entities/User");
 const factories_1 = require("../test-utils/factories");
 const queries_mutations_1 = require("../test-utils/queries-mutations");
-const testConn_1 = require("../test-utils/testConn");
-const createSchema_1 = require("../utils/createSchema");
+const clearDatabase_1 = require("../test-utils/services/clearDatabase");
+const loadFixtures_1 = require("../test-utils/services/loadFixtures");
 const sendEmail_1 = require("../utils/sendEmail");
-const uuid_1 = require("uuid");
 jest.mock("../utils/sendEmail", () => {
     return {
         sendEmail: jest.fn(),
     };
 });
-let dbConn;
+let serverConnection;
+let orm;
 let em;
-let apolloServer;
 let testClientQuery;
 let testClientMutate;
 let testClientSetOptions;
@@ -282,17 +282,20 @@ describe("User Resolver", () => {
         }));
     });
 });
-beforeEach(() => {
+beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
     jest.resetAllMocks();
-});
+    yield clearDatabase_1.clearDatabase(orm);
+    yield loadFixtures_1.loadFixtures(orm);
+}));
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    dbConn = yield testConn_1.testConn();
-    em = dbConn.em;
-    const redis = new ioredis_1.default();
-    apolloServer = new apollo_server_express_1.ApolloServer({
-        schema: yield createSchema_1.createSchema(),
-        context: ({ req, res }) => ({ em, req, res, redis }),
-    });
+    const application = application_1.default();
+    yield application.connect();
+    yield application.init();
+    orm = yield application.getOrm();
+    const apolloServer = yield application.getApolloServer();
+    serverConnection = yield application.getServerConnection();
+    serverConnection.close();
+    em = orm.em.fork();
     const { query, mutate, setOptions } = apollo_server_integration_testing_1.createTestClient({
         apolloServer,
         extendMockRequest: {
@@ -304,10 +307,12 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     testClientMutate = mutate;
     testClientQuery = query;
     testClientSetOptions = setOptions;
-    yield em.nativeDelete(User_1.User, {});
+    yield clearDatabase_1.clearDatabase(orm);
+    yield loadFixtures_1.loadFixtures(orm);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield dbConn.close();
+    yield orm.close();
+    serverConnection.close();
 }));
 function registerUser(username, password, email) {
     var _a;

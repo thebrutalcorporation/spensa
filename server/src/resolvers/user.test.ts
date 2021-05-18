@@ -4,24 +4,23 @@ import {
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
-import { ApolloServer } from "apollo-server-express";
 import {
   createTestClient,
   TestQuery,
   TestSetOptions,
 } from "apollo-server-integration-testing";
-import Redis from "ioredis";
-
+import "dotenv/config";
+import { Server } from "http";
 import "reflect-metadata";
+import { v4 } from "uuid";
+import Application from "../application";
 import { User } from "../entities/User";
 import { genUserOptions } from "../test-utils/factories";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { testConn } from "../test-utils/testConn";
-import { Context } from "../utils/interfaces/context";
-import { createSchema } from "../utils/createSchema";
-import { UserResponse } from "./user";
+import { clearDatabase } from "../test-utils/services/clearDatabase";
+import { loadFixtures } from "../test-utils/services/loadFixtures";
 import { sendEmail } from "../utils/sendEmail";
-import { v4 } from "uuid";
+import { UserResponse } from "./user";
 
 jest.mock("../utils/sendEmail", () => {
   return {
@@ -29,9 +28,9 @@ jest.mock("../utils/sendEmail", () => {
   };
 });
 
-let dbConn: MikroORM<IDatabaseDriver<Connection>>;
+let serverConnection: Server;
+let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
-let apolloServer: ApolloServer;
 let testClientQuery: TestQuery;
 let testClientMutate: TestQuery;
 let testClientSetOptions: TestSetOptions;
@@ -471,21 +470,23 @@ describe("User Resolver", () => {
   });
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.resetAllMocks();
+  await clearDatabase(orm);
+  await loadFixtures(orm);
 });
 
 beforeAll(async () => {
-  //set up database connection
-  dbConn = await testConn();
-  em = dbConn.em;
+  const application = Application();
+  await application.connect();
+  await application.init();
+  orm = await application.getOrm();
+  const apolloServer = await application.getApolloServer();
 
-  const redis = new Redis();
-
-  apolloServer = new ApolloServer({
-    schema: await createSchema(),
-    context: ({ req, res }): Context => ({ em, req, res, redis }),
-  });
+  // make available to other scopes
+  serverConnection = await application.getServerConnection();
+  serverConnection.close();
+  em = orm.em.fork();
 
   const { query, mutate, setOptions } = createTestClient({
     apolloServer,
@@ -501,11 +502,13 @@ beforeAll(async () => {
   testClientQuery = query;
   testClientSetOptions = setOptions;
 
-  await em.nativeDelete(User, {}); //clear all users in test db
+  await clearDatabase(orm);
+  await loadFixtures(orm);
 });
 
 afterAll(async () => {
-  await dbConn.close();
+  await orm.close();
+  serverConnection.close();
 });
 
 async function registerUser(username: string, password: string, email: string) {
