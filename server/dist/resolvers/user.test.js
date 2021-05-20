@@ -18,10 +18,9 @@ require("reflect-metadata");
 const uuid_1 = require("uuid");
 const application_1 = __importDefault(require("../application"));
 const User_1 = require("../entities/User");
-const factories_1 = require("../test-utils/factories");
+const createUserFixture_1 = require("../test-utils/fixtures/createUserFixture");
 const queries_mutations_1 = require("../test-utils/queries-mutations");
-const clearDatabase_1 = require("../test-utils/services/clearDatabase");
-const loadFixtures_1 = require("../test-utils/services/loadFixtures");
+const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
 const sendEmail_1 = require("../utils/sendEmail");
 jest.mock("../utils/sendEmail", () => {
     return {
@@ -38,7 +37,7 @@ describe("User Resolver", () => {
     describe("Happy Path", () => {
         test("should register a new user successfully ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a, _b, _c;
-            const userToRegister = factories_1.genUserOptions();
+            const userToRegister = createUserFixture_1.createUserFixture();
             const registeredUserResponse = yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const dbUser = yield em.findOne(User_1.User, {
                 id: (_a = registeredUserResponse.user) === null || _a === void 0 ? void 0 : _a.id,
@@ -50,7 +49,7 @@ describe("User Resolver", () => {
         }));
         test("should log in a new user successfully with username ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _d;
-            const user = factories_1.genUserOptions();
+            const user = createUserFixture_1.createUserFixture();
             yield registerUser(user.username, user.password, user.email);
             const response = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN, {
                 variables: {
@@ -69,7 +68,7 @@ describe("User Resolver", () => {
         }));
         test("should log in a new user successfully with email ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _e;
-            const user = factories_1.genUserOptions();
+            const user = createUserFixture_1.createUserFixture();
             yield registerUser(user.username, user.password, user.email);
             const response = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN, {
                 variables: {
@@ -88,7 +87,7 @@ describe("User Resolver", () => {
         }));
         test("should return current user if logged in", () => __awaiter(void 0, void 0, void 0, function* () {
             var _f, _g;
-            const userOptions = factories_1.genUserOptions();
+            const userOptions = createUserFixture_1.createUserFixture();
             yield registerUser(userOptions.username, userOptions.password, userOptions.email);
             const response = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGIN, {
                 variables: {
@@ -111,14 +110,14 @@ describe("User Resolver", () => {
                     },
                 },
             });
-            const user = factories_1.genUserOptions();
+            const user = createUserFixture_1.createUserFixture();
             yield registerUser(user.username, user.password, user.email);
             const logoutResponse = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.LOGOUT);
             expect((_h = logoutResponse.data) === null || _h === void 0 ? void 0 : _h.logout).toBe(true);
         }));
         test("should send a forgot password email if requested ", () => __awaiter(void 0, void 0, void 0, function* () {
             var _j;
-            const user = factories_1.genUserOptions();
+            const user = createUserFixture_1.createUserFixture();
             yield registerUser(user.username, user.password, user.email);
             const forgotPasswordResponse = yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.FORGOT_PASSWORD, {
                 variables: { email: user.email },
@@ -129,7 +128,7 @@ describe("User Resolver", () => {
         xtest("should allow users to change their password", () => __awaiter(void 0, void 0, void 0, function* () {
             var _k, _l, _m, _o;
             uuid_1.v4.mockImplementation(() => "e4b3a253-a1d1-4331-bf45-eb68afeb91b9");
-            const user = factories_1.genUserOptions();
+            const user = createUserFixture_1.createUserFixture();
             yield registerUser(user.username, user.password, user.email);
             yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.FORGOT_PASSWORD, {
                 variables: { email: user.email },
@@ -162,7 +161,7 @@ describe("User Resolver", () => {
     });
     describe("Registration Validations", () => {
         test("should not permit registration with username with lengths <= 2", () => __awaiter(void 0, void 0, void 0, function* () {
-            const defaultUserOptions = factories_1.genUserOptions();
+            const defaultUserOptions = createUserFixture_1.createUserFixture();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "me" });
             const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
             const errors = registeredUserResponse.errors;
@@ -174,7 +173,7 @@ describe("User Resolver", () => {
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be greater than 2");
         }));
         test("should not permit registration with invalid email", () => __awaiter(void 0, void 0, void 0, function* () {
-            const defaultUserOptions = factories_1.genUserOptions();
+            const defaultUserOptions = createUserFixture_1.createUserFixture();
             const invalidEmails = [
                 "email",
                 "email@",
@@ -198,7 +197,7 @@ describe("User Resolver", () => {
             });
         }));
         test("should not permit registration with password with length < 6", () => __awaiter(void 0, void 0, void 0, function* () {
-            const defaultUserOptions = factories_1.genUserOptions();
+            const defaultUserOptions = createUserFixture_1.createUserFixture();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { password: "abc" });
             const registeredUserResponse = yield registerUser(newUser.username, newUser.password, newUser.email);
             const errors = registeredUserResponse.errors;
@@ -210,7 +209,7 @@ describe("User Resolver", () => {
             expect(firstError === null || firstError === void 0 ? void 0 : firstError.message).toBe("length must be at least 6 characters");
         }));
         test("should not permit registration if username exists", () => __awaiter(void 0, void 0, void 0, function* () {
-            const userToRegister = factories_1.genUserOptions();
+            const userToRegister = createUserFixture_1.createUserFixture();
             yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const newUserToRegister = Object.assign({}, userToRegister);
             const duplicateRegisteredUserResponse = yield registerUser(newUserToRegister.username, newUserToRegister.password, newUserToRegister.email);
@@ -226,7 +225,7 @@ describe("User Resolver", () => {
     describe("Login Validations", () => {
         test("should not permit login with incorrect username", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
-            const defaultUserOptions = factories_1.genUserOptions();
+            const defaultUserOptions = createUserFixture_1.createUserFixture();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { username: "nonexistent" });
             const expectedErrors = [
                 { field: "usernameOrEmail", message: "user does not exist!" },
@@ -245,7 +244,7 @@ describe("User Resolver", () => {
         }));
         test("should not permit login with incorrect email", () => __awaiter(void 0, void 0, void 0, function* () {
             var _b;
-            const defaultUserOptions = factories_1.genUserOptions();
+            const defaultUserOptions = createUserFixture_1.createUserFixture();
             const newUser = Object.assign(Object.assign({}, defaultUserOptions), { email: "incorrectemail@test.com" });
             const expectedErrors = [
                 { field: "usernameOrEmail", message: "user does not exist!" },
@@ -264,7 +263,7 @@ describe("User Resolver", () => {
         }));
         test("should not permit login with incorrect password", () => __awaiter(void 0, void 0, void 0, function* () {
             var _c;
-            const userToRegister = factories_1.genUserOptions();
+            const userToRegister = createUserFixture_1.createUserFixture();
             yield registerUser(userToRegister.username, userToRegister.password, userToRegister.email);
             const userWrongPassword = Object.assign(Object.assign({}, userToRegister), { password: "wrongpassword" });
             const expectedErrors = [{ field: "password", message: "Invalid login!" }];
@@ -284,8 +283,7 @@ describe("User Resolver", () => {
 });
 beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
     jest.resetAllMocks();
-    yield clearDatabase_1.clearDatabase(orm);
-    yield loadFixtures_1.loadFixtures(orm);
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
 }));
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     const application = application_1.default();
@@ -307,10 +305,9 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     testClientMutate = mutate;
     testClientQuery = query;
     testClientSetOptions = setOptions;
-    yield clearDatabase_1.clearDatabase(orm);
-    yield loadFixtures_1.loadFixtures(orm);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
     serverConnection.close();
 }));

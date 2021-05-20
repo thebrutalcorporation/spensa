@@ -11,8 +11,9 @@ import { Server } from "http";
 import "reflect-metadata";
 import Application from "../application";
 import { Transaction } from "../entities/Transaction";
+import { createTxnFixture } from "../test-utils/fixtures/createTxnFixture";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { clearDatabase } from "../test-utils/services/clearDatabase";
+import { clearDatabaseTable } from "../test-utils/services/clearDatabaseTable";
 import { loadFixtures } from "../test-utils/services/loadFixtures";
 
 let serverConnection: Server;
@@ -25,9 +26,7 @@ describe("Transaction Resolver", () => {
   describe("Happy Path", () => {
     test("should create a txn successfully", async () => {
       //ARRANGE
-      const txnToBeCreatedVariables = {
-        title: faker.company.companyName(),
-      };
+      const txnToBeCreatedVariables = createTxnFixture();
 
       //ACT
 
@@ -50,18 +49,7 @@ describe("Transaction Resolver", () => {
 
     test("should return all transactions", async () => {
       //ARRANGE
-      //create 2 txns with diff titles
-      await testClientMutate(TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-        variables: {
-          title: faker.company.companyName(),
-        },
-      });
-
-      await testClientMutate(TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-        variables: {
-          title: faker.company.companyName(),
-        },
-      });
+      await loadFixtures(orm, "transaction"); //generate 5 txns
 
       //ACT
       const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS);
@@ -85,9 +73,7 @@ describe("Transaction Resolver", () => {
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
-          variables: {
-            title: faker.company.companyName(),
-          },
+          variables: await createTxnFixture(),
         }
       );
 
@@ -118,9 +104,7 @@ describe("Transaction Resolver", () => {
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
-          variables: {
-            title: faker.company.companyName(),
-          },
+          variables: await createTxnFixture(),
         }
       );
 
@@ -152,9 +136,7 @@ describe("Transaction Resolver", () => {
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
-          variables: {
-            title: faker.company.companyName(),
-          },
+          variables: await createTxnFixture(),
         }
       );
 
@@ -204,11 +186,11 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await clearDatabase(orm);
-  await loadFixtures(orm);
+  await clearDatabaseTable(orm, Transaction);
 });
 
 afterAll(async () => {
+  await clearDatabaseTable(orm, Transaction);
   await orm.close();
   serverConnection.close();
 });

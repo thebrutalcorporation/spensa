@@ -18,8 +18,9 @@ const es_1 = __importDefault(require("faker/locale/es"));
 require("reflect-metadata");
 const application_1 = __importDefault(require("../application"));
 const Transaction_1 = require("../entities/Transaction");
+const createTxnFixture_1 = require("../test-utils/fixtures/createTxnFixture");
 const queries_mutations_1 = require("../test-utils/queries-mutations");
-const clearDatabase_1 = require("../test-utils/services/clearDatabase");
+const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
 const loadFixtures_1 = require("../test-utils/services/loadFixtures");
 let serverConnection;
 let orm;
@@ -30,9 +31,7 @@ describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
-            const txnToBeCreatedVariables = {
-                title: es_1.default.company.companyName(),
-            };
+            const txnToBeCreatedVariables = createTxnFixture_1.createTxnFixture();
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
                 variables: txnToBeCreatedVariables,
             });
@@ -44,16 +43,7 @@ describe("Transaction Resolver", () => {
         }));
         test("should return all transactions", () => __awaiter(void 0, void 0, void 0, function* () {
             var _b;
-            yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: {
-                    title: es_1.default.company.companyName(),
-                },
-            });
-            yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: {
-                    title: es_1.default.company.companyName(),
-                },
-            });
+            yield loadFixtures_1.loadFixtures(orm, "transaction");
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS);
             const transactions = (_b = res.data) === null || _b === void 0 ? void 0 : _b.transactions;
             const dbTxns = yield em.find(Transaction_1.Transaction, {});
@@ -65,9 +55,7 @@ describe("Transaction Resolver", () => {
         test("should return a transaction by id", () => __awaiter(void 0, void 0, void 0, function* () {
             var _c;
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: {
-                    title: es_1.default.company.companyName(),
-                },
+                variables: yield createTxnFixture_1.createTxnFixture(),
             });
             const newlyCreatedTxn = (_c = response.data) === null || _c === void 0 ? void 0 : _c.createTransaction;
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.GET_TXN, {
@@ -84,9 +72,7 @@ describe("Transaction Resolver", () => {
         }));
         test("should update a transaction", () => __awaiter(void 0, void 0, void 0, function* () {
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: {
-                    title: es_1.default.company.companyName(),
-                },
+                variables: yield createTxnFixture_1.createTxnFixture(),
             });
             const newlyCreatedTxn = response.data.createTransaction;
             const newTitle = es_1.default.company.companyName();
@@ -103,9 +89,7 @@ describe("Transaction Resolver", () => {
         }));
         test("should delete a transaction", () => __awaiter(void 0, void 0, void 0, function* () {
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: {
-                    title: es_1.default.company.companyName(),
-                },
+                variables: yield createTxnFixture_1.createTxnFixture(),
             });
             const newlyCreatedTxn = response.data.createTransaction;
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.DELETE_TXN, {
@@ -139,10 +123,10 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     testClientQuery = query;
 }));
 beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield clearDatabase_1.clearDatabase(orm);
-    yield loadFixtures_1.loadFixtures(orm);
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
     yield orm.close();
     serverConnection.close();
 }));

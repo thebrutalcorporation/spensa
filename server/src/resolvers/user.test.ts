@@ -15,10 +15,9 @@ import "reflect-metadata";
 import { v4 } from "uuid";
 import Application from "../application";
 import { User } from "../entities/User";
-import { genUserOptions } from "../test-utils/factories";
+import { createUserFixture } from "../test-utils/fixtures/createUserFixture";
 import { USER_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
-import { clearDatabase } from "../test-utils/services/clearDatabase";
-import { loadFixtures } from "../test-utils/services/loadFixtures";
+import { clearDatabaseTable } from "../test-utils/services/clearDatabaseTable";
 import { sendEmail } from "../utils/sendEmail";
 import { UserResponse } from "./user";
 
@@ -39,7 +38,7 @@ describe("User Resolver", () => {
   describe("Happy Path", () => {
     test("should register a new user successfully ", async () => {
       //Arrange
-      const userToRegister = genUserOptions();
+      const userToRegister = createUserFixture();
 
       //Act
       const registeredUserResponse = await registerUser(
@@ -60,7 +59,7 @@ describe("User Resolver", () => {
     });
     test("should log in a new user successfully with username ", async () => {
       //ARRANGE
-      const user = genUserOptions();
+      const user = createUserFixture();
       await registerUser(user.username, user.password, user.email);
 
       //ACT
@@ -88,7 +87,7 @@ describe("User Resolver", () => {
     });
     test("should log in a new user successfully with email ", async () => {
       //ARRANGE
-      const user = genUserOptions();
+      const user = createUserFixture();
       await registerUser(user.username, user.password, user.email);
 
       //ACT
@@ -118,7 +117,7 @@ describe("User Resolver", () => {
       //session cookie set on user's machine if logged in.
       //session exists if cookie exists
       //ARRANGE
-      const userOptions = genUserOptions();
+      const userOptions = createUserFixture();
       await registerUser(
         userOptions.username,
         userOptions.password,
@@ -156,7 +155,7 @@ describe("User Resolver", () => {
         },
       });
       //gen random user
-      const user = genUserOptions();
+      const user = createUserFixture();
 
       //register new user, which logs in automatically by default
       await registerUser(user.username, user.password, user.email);
@@ -172,7 +171,7 @@ describe("User Resolver", () => {
     test("should send a forgot password email if requested ", async () => {
       //ARRANGE
       //gen random user
-      const user = genUserOptions();
+      const user = createUserFixture();
 
       //register new user
       await registerUser(user.username, user.password, user.email);
@@ -196,7 +195,7 @@ describe("User Resolver", () => {
       );
 
       //gen random user
-      const user = genUserOptions();
+      const user = createUserFixture();
 
       //register new user
       await registerUser(user.username, user.password, user.email);
@@ -260,7 +259,7 @@ describe("User Resolver", () => {
   describe("Registration Validations", () => {
     test("should not permit registration with username with lengths <= 2", async () => {
       //Arrange
-      const defaultUserOptions = genUserOptions();
+      const defaultUserOptions = createUserFixture();
       const newUser = { ...defaultUserOptions, username: "me" };
 
       //Act
@@ -282,7 +281,7 @@ describe("User Resolver", () => {
     });
     test("should not permit registration with invalid email", async () => {
       //Arrange
-      const defaultUserOptions = genUserOptions();
+      const defaultUserOptions = createUserFixture();
       const invalidEmails = [
         "email",
         "email@",
@@ -321,7 +320,7 @@ describe("User Resolver", () => {
     });
     test("should not permit registration with password with length < 6", async () => {
       //Arrange
-      const defaultUserOptions = genUserOptions();
+      const defaultUserOptions = createUserFixture();
       const newUser = { ...defaultUserOptions, password: "abc" };
 
       //Act
@@ -343,7 +342,7 @@ describe("User Resolver", () => {
     });
     test("should not permit registration if username exists", async () => {
       //ARRANGE
-      const userToRegister = genUserOptions();
+      const userToRegister = createUserFixture();
 
       //Register a user to take up username
       await registerUser(
@@ -376,7 +375,7 @@ describe("User Resolver", () => {
   describe("Login Validations", () => {
     test("should not permit login with incorrect username", async () => {
       //ARRANGE
-      const defaultUserOptions = genUserOptions();
+      const defaultUserOptions = createUserFixture();
       const newUser = { ...defaultUserOptions, username: "nonexistent" };
       const expectedErrors = [
         { field: "usernameOrEmail", message: "user does not exist!" },
@@ -403,7 +402,7 @@ describe("User Resolver", () => {
     });
     test("should not permit login with incorrect email", async () => {
       //ARRANGE
-      const defaultUserOptions = genUserOptions();
+      const defaultUserOptions = createUserFixture();
       const newUser = {
         ...defaultUserOptions,
         email: "incorrectemail@test.com",
@@ -433,7 +432,7 @@ describe("User Resolver", () => {
     });
     test("should not permit login with incorrect password", async () => {
       //ARRANGE
-      const userToRegister = genUserOptions();
+      const userToRegister = createUserFixture();
       //register user with a username + password
       await registerUser(
         userToRegister.username,
@@ -472,8 +471,7 @@ describe("User Resolver", () => {
 
 beforeEach(async () => {
   jest.resetAllMocks();
-  await clearDatabase(orm);
-  await loadFixtures(orm);
+  await clearDatabaseTable(orm, User);
 });
 
 beforeAll(async () => {
@@ -502,11 +500,11 @@ beforeAll(async () => {
   testClientQuery = query;
   testClientSetOptions = setOptions;
 
-  await clearDatabase(orm);
-  await loadFixtures(orm);
+  // await loadFixtures(orm);
 });
 
 afterAll(async () => {
+  await clearDatabaseTable(orm, User);
   await orm.close();
   serverConnection.close();
 });
