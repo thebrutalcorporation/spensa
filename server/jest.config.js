@@ -5,4 +5,8 @@ module.exports = {
     "**/?(*.)+(spec|test).+(ts|tsx|js)",
   ],
   testEnvironment: "node",
+  testPathIgnorePatterns: ["/node_modules/"],
+  setupFilesAfterEnv: [
+    require.resolve("./dist/test-utils/services/dropSchemaAndInitializeDb.js"),
+  ],
 };
