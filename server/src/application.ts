@@ -12,6 +12,7 @@ import { ApolloServer } from "apollo-server-express";
 import { TransactionResolver } from "./resolvers/transaction";
 import { UserResolver } from "./resolvers/user";
 import { Server } from "http";
+import { AddressInfo } from "node:net";
 
 const Application = () => {
   let orm: MikroORM<IDatabaseDriver<Connection>>;
@@ -60,7 +61,7 @@ const Application = () => {
     }
   };
 
-  const init = async (port = parseInt(process.env.PORT)): Promise<void> => {
+  const init = async (): Promise<void> => {
     const RedisStore = connectRedis(session);
     const redis = new Redis();
 
@@ -106,9 +107,15 @@ const Application = () => {
         cors: false,
       }); //create graphql endpoint on express
 
-      server = host.listen(port, () => {
-        console.log(`Server running on port: ${port}`);
-      });
+      if (process.env.NODE_ENV === "test") {
+        server = host.listen(0);
+        const { port } = server.address() as AddressInfo;
+        console.log(`Listening on ${port}`);
+      } else {
+        server = host.listen(4000, () => {
+          console.log(`Server running on port: 4000`);
+        });
+      }
     } catch (error) {
       console.error("📌 Could not start server", error);
     }

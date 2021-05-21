@@ -67,7 +67,7 @@ const Application = () => {
             throw Error(error);
         }
     });
-    const init = (port = parseInt(process.env.PORT)) => __awaiter(void 0, void 0, void 0, function* () {
+    const init = () => __awaiter(void 0, void 0, void 0, function* () {
         const RedisStore = connect_redis_1.default(express_session_1.default);
         const redis = new ioredis_1.default();
         host = express_1.default();
@@ -103,9 +103,16 @@ const Application = () => {
                 app: host,
                 cors: false,
             });
-            server = host.listen(port, () => {
-                console.log(`Server running on port: ${port}`);
-            });
+            if (process.env.NODE_ENV === "test") {
+                server = host.listen(0);
+                const { port } = server.address();
+                console.log(`Listening on ${port}`);
+            }
+            else {
+                server = host.listen(4000, () => {
+                    console.log(`Server running on port: 4000`);
+                });
+            }
         }
         catch (error) {
             console.error("📌 Could not start server", error);
