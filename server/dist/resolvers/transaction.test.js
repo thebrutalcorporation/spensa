@@ -35,8 +35,8 @@ describe("Transaction Resolver", () => {
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
                 variables: txnToBeCreatedVariables,
             });
-            let newlyCreatedTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
-            let dbTxn = yield em.findOne(Transaction_1.Transaction, {
+            const newlyCreatedTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
+            const dbTxn = yield em.findOne(Transaction_1.Transaction, {
                 id: newlyCreatedTxn.id,
             });
             expect(newlyCreatedTxn.id).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.id);

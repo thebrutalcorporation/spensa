@@ -37,11 +37,11 @@ describe("Transaction Resolver", () => {
         }
       );
 
-      let newlyCreatedTxn: Transaction = (response.data as any)
+      const newlyCreatedTxn: Transaction = (response.data as any)
         ?.createTransaction;
 
       //ASSERT
-      let dbTxn = await em.findOne(Transaction, {
+      const dbTxn = await em.findOne(Transaction, {
         id: newlyCreatedTxn.id,
       });
       expect(newlyCreatedTxn.id).toBe(dbTxn?.id);
@@ -147,7 +147,7 @@ describe("Transaction Resolver", () => {
       const res = await testClientQuery(TXN_QUERIES_AND_MUTATIONS.DELETE_TXN, {
         variables: { id: newlyCreatedTxn.id },
       });
-      const isTxnDeleted: Boolean = (res.data as any).deleteTransaction;
+      const isTxnDeleted: boolean = (res.data as any).deleteTransaction;
 
       //should be undefined after deletion
       const [dbTxn] = await em.find(Transaction, { id: newlyCreatedTxn.id });

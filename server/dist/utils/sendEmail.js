@@ -16,7 +16,7 @@ exports.sendEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 function sendEmail(to, subject, html) {
     return __awaiter(this, void 0, void 0, function* () {
-        let transporter = nodemailer_1.default.createTransport({
+        const transporter = nodemailer_1.default.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
             secure: false,
@@ -25,7 +25,7 @@ function sendEmail(to, subject, html) {
                 pass: "316nwK93vZY4BC51JM",
             },
         });
-        let info = yield transporter.sendMail({
+        const info = yield transporter.sendMail({
             from: '"Spensa Foo 👻" <donotreply@spensa.com>',
             to,
             subject,

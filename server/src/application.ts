@@ -12,7 +12,7 @@ import { ApolloServer } from "apollo-server-express";
 import { TransactionResolver } from "./resolvers/transaction";
 import { UserResolver } from "./resolvers/user";
 import { Server } from "http";
-import { AddressInfo } from "node:net";
+import { AddressInfo } from "net";
 
 const Application = () => {
   let orm: MikroORM<IDatabaseDriver<Connection>>;
