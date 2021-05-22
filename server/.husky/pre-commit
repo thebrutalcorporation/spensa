@@ -2,6 +2,5 @@
 . "$(dirname "$0")/_/husky.sh"
 
 cd server
+npm run pre-commit
 npm test
-npm run format
-npm run lint
