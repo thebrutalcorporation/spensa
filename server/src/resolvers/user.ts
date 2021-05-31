@@ -10,7 +10,6 @@ import {
 } from "type-graphql";
 import { v4 } from "uuid";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
-
 import { User } from "../entities/User";
 import { Context } from "../utils/interfaces/context";
 import { sendEmail } from "../utils/sendEmail";
@@ -99,7 +98,7 @@ export class UserResolver {
   async forgotPassword(
     @Arg("email") email: string,
     @Ctx() { em, redis }: Context
-  ) {
+  ): Promise<boolean> {
     const user = await em.findOne(User, { email });
     if (!user) {
       //email is not in the database;
@@ -126,7 +125,7 @@ export class UserResolver {
   }
 
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { em, req }: Context) {
+  async me(@Ctx() { em, req }: Context): Promise<User | null> {
     //not logged in
     if (!req.session.userId) {
       return null;
@@ -222,7 +221,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  logout(@Ctx() { req, res }: Context) {
+  logout(@Ctx() { req, res }: Context): Promise<boolean> {
     return new Promise((resolve) =>
       req.session.destroy((err) => {
         if (err) {
