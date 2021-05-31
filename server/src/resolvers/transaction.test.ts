@@ -22,7 +22,6 @@ import { createTxnOptions } from "../test-utils/fixtures/createTxnOptions";
 import createUser from "../test-utils/fixtures/createUser";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
 import { clearDatabaseTable } from "../test-utils/services/clearDatabaseTable";
-import createSimpleUuid from "../test-utils/helpers/createSimpleUuid";
 
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
