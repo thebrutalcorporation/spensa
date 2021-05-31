@@ -24,10 +24,12 @@ const createTxnOptions_1 = require("../test-utils/fixtures/createTxnOptions");
 const createUser_1 = __importDefault(require("../test-utils/fixtures/createUser"));
 const queries_mutations_1 = require("../test-utils/queries-mutations");
 const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
+const createSimpleUuid_1 = __importDefault(require("../test-utils/helpers/createSimpleUuid"));
 let orm;
 let em;
 let testClientQuery;
 let testClientMutate;
+let testSetOptions;
 describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
@@ -35,6 +37,14 @@ describe("Transaction Resolver", () => {
             const user = yield createUser_1.default(orm);
             const txn = createTxnOptions_1.createTxnOptions();
             const txnToBeCreated = Object.assign(Object.assign({}, txn), { userId: user.id });
+            const testUuid = createSimpleUuid_1.default(1);
+            testSetOptions({
+                request: {
+                    session: {
+                        userId: testUuid,
+                    },
+                },
+            });
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
                 variables: txnToBeCreated,
             });
@@ -102,6 +112,28 @@ describe("Transaction Resolver", () => {
             expect(dbTxn).toBe(undefined);
         }));
     });
+    describe("Validations", () => {
+        test("should return an error when creating txn when user not logged in", () => __awaiter(void 0, void 0, void 0, function* () {
+            var _a;
+            const user = yield createUser_1.default(orm);
+            const txn = createTxnOptions_1.createTxnOptions();
+            const txnToBeCreated = Object.assign(Object.assign({}, txn), { userId: user.id });
+            const expectedErrorMessage = "Not authenticated!";
+            testSetOptions({
+                request: {
+                    session: {
+                        userId: undefined,
+                    },
+                },
+            });
+            const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
+                variables: txnToBeCreated,
+            });
+            const receivedErrorMessage = (_a = response.errors) === null || _a === void 0 ? void 0 : _a[0].message;
+            expect(response.errors).not.toBe(null);
+            expect(receivedErrorMessage).toBe(expectedErrorMessage);
+        }));
+    });
 });
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     const application = application_1.default();
@@ -110,24 +142,18 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     orm = yield application.getOrm();
     const apolloServer = yield application.getApolloServer();
     em = orm.em.fork();
-    const { query, mutate } = apollo_server_integration_testing_1.createTestClient({
+    const { query, mutate, setOptions } = apollo_server_integration_testing_1.createTestClient({
         apolloServer,
-        extendMockRequest: {
-            session: {
-                userId: null,
-            },
-        },
     });
     testClientMutate = mutate;
     testClientQuery = query;
+    testSetOptions = setOptions;
 }));
 beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
     yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
-    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
 }));
 //# sourceMappingURL=transaction.test.js.map

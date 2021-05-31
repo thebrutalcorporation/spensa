@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
   Connection,
   EntityManager,
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
-import { createTestClient, TestQuery } from "apollo-server-integration-testing";
+import {
+  createTestClient,
+  TestQuery,
+  TestSetOptions,
+} from "apollo-server-integration-testing";
 import "dotenv/config";
 import faker from "faker/locale/es";
 import "reflect-metadata";
@@ -17,11 +22,19 @@ import { createTxnOptions } from "../test-utils/fixtures/createTxnOptions";
 import createUser from "../test-utils/fixtures/createUser";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
 import { clearDatabaseTable } from "../test-utils/services/clearDatabaseTable";
+import createSimpleUuid from "../test-utils/helpers/createSimpleUuid";
 
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let testClientQuery: TestQuery;
 let testClientMutate: TestQuery;
+let testSetOptions: TestSetOptions;
+
+// jest.mock("../middleware/isAuth", () => {
+//   return {
+//     isAuth: jest.fn(),
+//   };
+// });
 
 describe("Transaction Resolver", () => {
   describe("Happy Path", () => {
@@ -31,8 +44,18 @@ describe("Transaction Resolver", () => {
       const txn = createTxnOptions();
       const txnToBeCreated = { ...txn, userId: user.id };
 
-      //ACT
+      //mock a logged in user by setting the session.userId which causes isAuth to pass
+      const testUuid = createSimpleUuid(1);
+      testSetOptions({
+        // If "request" or "response" is not specified, it's not modified
+        request: {
+          session: {
+            userId: testUuid,
+          },
+        },
+      });
 
+      //ACT
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
@@ -147,6 +170,40 @@ describe("Transaction Resolver", () => {
       expect(dbTxn).toBe(undefined);
     });
   });
+
+  describe("Validations", () => {
+    test("should return an error when creating txn when user not logged in", async () => {
+      //ARRANGE
+      const user = await createUser(orm);
+      const txn = createTxnOptions();
+      const txnToBeCreated = { ...txn, userId: user.id };
+      const expectedErrorMessage = "Not authenticated!";
+
+      //setting undefined for session.userId means user is not logged in
+      testSetOptions({
+        // If "request" or "response" is not specified, it's not modified
+        request: {
+          session: {
+            userId: undefined,
+          },
+        },
+      });
+
+      //ACT
+      const response = await testClientMutate(
+        TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
+        {
+          variables: txnToBeCreated,
+        }
+      );
+
+      const receivedErrorMessage = response.errors?.[0].message;
+
+      //ASSERT
+      expect(response.errors).not.toBe(null);
+      expect(receivedErrorMessage).toBe(expectedErrorMessage);
+    });
+  });
 });
 
 beforeAll(async () => {
@@ -161,18 +218,14 @@ beforeAll(async () => {
 
   //generate a user and set the req.sessiono.id to user.id to simulate logged in user
   // const user = await createUser(orm, getRandomInt(1, 1000));
-  const { query, mutate } = createTestClient({
+  const { query, mutate, setOptions } = createTestClient({
     apolloServer,
-    extendMockRequest: {
-      session: {
-        userId: null,
-      },
-    },
   });
 
   //Set values to variables for use in other tests
   testClientMutate = mutate;
   testClientQuery = query;
+  testSetOptions = setOptions;
 });
 
 beforeEach(async () => {
@@ -181,7 +234,5 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-  await clearDatabaseTable(orm, Transaction);
-  await clearDatabaseTable(orm, User);
   await orm.close();
 });
