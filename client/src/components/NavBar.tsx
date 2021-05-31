@@ -1,46 +1,54 @@
-import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import React from "react";
+import { Box, Link, Flex, Button } from "@chakra-ui/react";
 import NextLink from "next/link";
-import { useLogoutMutation, useMeQuery } from "../generated/graphql";
+import { useMeQuery, useLogoutMutation } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
-  const [{ fetching: isFetchingLogout }, logout] = useLogoutMutation();
+  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({
-    pause: isServer(), //do not run query if on server
+    pause: isServer(),
   });
 
+  let body = null;
+
+  // data is loading
   if (fetching) {
-    return null;
+    // user not logged in
+  } else if (!data?.me) {
+    body = (
+      <>
+        <NextLink href="/login">
+          <Link mr={2}>login</Link>
+        </NextLink>
+        <NextLink href="/register">
+          <Link>register</Link>
+        </NextLink>
+      </>
+    );
+    // user is logged in
+  } else {
+    body = (
+      <Flex>
+        <Box mr={2}>{data.me.username}</Box>
+        <Button
+          onClick={() => {
+            logout();
+          }}
+          isLoading={logoutFetching}
+          variant="link"
+        >
+          logout
+        </Button>
+      </Flex>
+    );
   }
 
   return (
-    <Flex position="sticky" top={0} zIndex={1} bg="tan" p={4}>
-      <Box ml={"auto"}>
-        {!data?.me ? (
-          <>
-            <NextLink href="/login">
-              <Link mr={2}>Login</Link>
-            </NextLink>
-            <NextLink href="/register">
-              <Link>Register</Link>
-            </NextLink>
-          </>
-        ) : (
-          <Flex>
-            <Box mr={2}>{data.me.username}</Box>
-            <Button
-              isLoading={isFetchingLogout}
-              onClick={() => logout()}
-              variant="link"
-            >
-              Logout
-            </Button>
-          </Flex>
-        )}
-      </Box>
+    <Flex zIndex={1} position="sticky" top={0} bg="tan" p={4}>
+      <Box ml={"auto"}>{body}</Box>
     </Flex>
   );
 };
