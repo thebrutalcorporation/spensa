@@ -152,6 +152,7 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
 beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
     yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
+    jest.resetAllMocks();
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield orm.close();

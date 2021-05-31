@@ -30,6 +30,8 @@ let testClientQuery: TestQuery;
 let testClientMutate: TestQuery;
 let testSetOptions: TestSetOptions;
 
+//TODO: how  can we mock and return next()?
+//see your issue: https://stackoverflow.com/questions/67768435/proper-way-to-test-type-graphql-middleware-with-jest
 // jest.mock("../middleware/isAuth", () => {
 //   return {
 //     isAuth: jest.fn(),
@@ -231,6 +233,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await clearDatabaseTable(orm, Transaction);
   await clearDatabaseTable(orm, User);
+  jest.resetAllMocks();
 });
 
 afterAll(async () => {
