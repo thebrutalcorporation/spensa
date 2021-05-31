@@ -14,6 +14,7 @@ import { UserResolver } from "./resolvers/user";
 import { Server } from "http";
 import { AddressInfo } from "net";
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const Application = () => {
   let orm: MikroORM<IDatabaseDriver<Connection>>;
   let host: express.Application;
