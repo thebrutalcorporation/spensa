@@ -1,0 +1,11 @@
+mutation createTransaction($title: String!) {
+  createTransaction(title: $title) {
+    id
+    title
+    createdAt
+    updatedAt
+    user {
+      id
+    }
+  }
+}

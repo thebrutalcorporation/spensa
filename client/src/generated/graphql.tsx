@@ -88,6 +88,7 @@ export type Transaction = {
   updatedAt: Scalars['String'];
   id: Scalars['String'];
   title: Scalars['String'];
+  user: User;
 };
 
 export type User = {
@@ -97,6 +98,7 @@ export type User = {
   id: Scalars['String'];
   username: Scalars['String'];
   email: Scalars['String'];
+  transactions: Array<Transaction>;
 };
 
 export type UserResponse = {
@@ -143,6 +145,23 @@ export type ChangePasswordMutation = (
   & { ChangePassword: (
     { __typename?: 'UserResponse' }
     & UserResponseFragment
+  ) }
+);
+
+export type CreateTransactionMutationVariables = Exact<{
+  title: Scalars['String'];
+}>;
+
+
+export type CreateTransactionMutation = (
+  { __typename?: 'Mutation' }
+  & { createTransaction: (
+    { __typename?: 'Transaction' }
+    & Pick<Transaction, 'id' | 'title' | 'createdAt' | 'updatedAt'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id'>
+    ) }
   ) }
 );
 
@@ -246,6 +265,23 @@ export const ChangePasswordDocument = gql`
 
 export function useChangePasswordMutation() {
   return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
+};
+export const CreateTransactionDocument = gql`
+    mutation createTransaction($title: String!) {
+  createTransaction(title: $title) {
+    id
+    title
+    createdAt
+    updatedAt
+    user {
+      id
+    }
+  }
+}
+    `;
+
+export function useCreateTransactionMutation() {
+  return Urql.useMutation<CreateTransactionMutation, CreateTransactionMutationVariables>(CreateTransactionDocument);
 };
 export const ForgotPasswordDocument = gql`
     mutation ForgotPassword($email: String!) {
