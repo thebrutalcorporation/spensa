@@ -11,7 +11,6 @@ import {
   TestSetOptions,
 } from "apollo-server-integration-testing";
 import "dotenv/config";
-import { Server } from "http";
 import "reflect-metadata";
 import { v4 } from "uuid";
 import Application from "../application";
@@ -29,7 +28,7 @@ jest.mock("../utils/sendEmail", () => {
   };
 });
 
-let serverConnection: Server;
+// let serverConnection: Server;
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let testClientQuery: TestQuery;
@@ -152,8 +151,6 @@ describe("User Resolver", () => {
           },
         },
       });
-      //gen random user
-      const user = createUserOptions();
 
       //register new user, which logs in automatically by default
       const userToRegister = createUserOptions();
@@ -478,9 +475,7 @@ beforeAll(async () => {
   orm = await application.getOrm();
   const apolloServer = await application.getApolloServer();
 
-  // make available to other scopes
-  serverConnection = await application.getServerConnection();
-  serverConnection.close();
+  // make available to other scopess
   em = orm.em.fork();
 
   const { query, mutate, setOptions } = createTestClient({
@@ -501,7 +496,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await clearDatabaseTable(orm, User);
   await orm.close();
-  await serverConnection.close();
 });
 
 async function registerUser(username: string, password: string, email: string) {

@@ -1,10 +1,14 @@
 export const TXN_QUERIES_AND_MUTATIONS = {
-  CREATE_TXN: `mutation createTransaction($title:String!){
-  createTransaction(title:$title) {
+  CREATE_TXN: `mutation createTransaction($title: String!, $userId: String! ) {
+  createTransaction(title: $title, userId:$userId) {
     id
     title
     createdAt
-    updatedAt
+    updatedAt 
+    user {
+      id
+      username
+    }   
   }
 }`,
   DELETE_TXN: `mutation deleteTransaction($id:String!){
@@ -15,8 +19,11 @@ deleteTransaction(id:$id)
     id
     title
     createdAt
-    updatedAt
-
+    updatedAt    
+     user {
+      id
+      username
+    }   
   }
 }`,
   GET_TXN: `query getTransactionById($id:String!) {

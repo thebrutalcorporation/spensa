@@ -6,10 +6,8 @@ import {
   MikroORM,
 } from "@mikro-orm/core";
 import { createTestClient, TestQuery } from "apollo-server-integration-testing";
-import { doesNotReject } from "assert";
 import "dotenv/config";
 import faker from "faker/locale/es";
-import { Server } from "http";
 import "reflect-metadata";
 import Application from "../application";
 import { Transaction } from "../entities/Transaction";
@@ -20,7 +18,6 @@ import createUser from "../test-utils/fixtures/createUser";
 import { TXN_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations";
 import { clearDatabaseTable } from "../test-utils/services/clearDatabaseTable";
 
-let serverConnection: Server;
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let testClientQuery: TestQuery;
@@ -160,8 +157,6 @@ beforeAll(async () => {
   const apolloServer = await application.getApolloServer();
 
   // make available to other scopes
-  serverConnection = await application.getServerConnection();
-  serverConnection.close();
   em = orm.em.fork();
 
   //generate a user and set the req.sessiono.id to user.id to simulate logged in user
@@ -189,5 +184,4 @@ afterAll(async () => {
   await clearDatabaseTable(orm, Transaction);
   await clearDatabaseTable(orm, User);
   await orm.close();
-  await serverConnection.close();
 });

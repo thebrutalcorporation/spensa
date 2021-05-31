@@ -15,14 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadFixtures = void 0;
 const Transaction_1 = require("../../entities/Transaction");
 const User_1 = require("../../entities/User");
-const createUserFixture_1 = require("../fixtures/createUserFixture");
-const createTxnFixture_1 = require("../fixtures/createTxnFixture");
+const createUserOptions_1 = require("../fixtures/createUserOptions");
+const createTxnOptions_1 = require("../fixtures/createTxnOptions");
 const createSimpleUuid_1 = __importDefault(require("../helpers/createSimpleUuid"));
 const loadFixtures = (orm, fixtureSet) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (fixtureSet === "user" || fixtureSet === "all") {
             yield Promise.all([...Array(5)].map((_, userIndex) => __awaiter(void 0, void 0, void 0, function* () {
-                const user = orm.em.create(User_1.User, yield createUserFixture_1.createUserFixture());
+                const user = orm.em.create(User_1.User, yield createUserOptions_1.createUserOptions());
                 user.id = createSimpleUuid_1.default(userIndex + 1);
                 yield orm.em.persist(user);
                 return user;
@@ -30,7 +30,7 @@ const loadFixtures = (orm, fixtureSet) => __awaiter(void 0, void 0, void 0, func
         }
         if (fixtureSet === "transaction" || fixtureSet === "all") {
             yield Promise.all([...Array(5)].map((_, txnIndex) => __awaiter(void 0, void 0, void 0, function* () {
-                const txn = orm.em.create(Transaction_1.Transaction, createTxnFixture_1.createTxnFixture());
+                const txn = orm.em.create(Transaction_1.Transaction, createTxnOptions_1.createTxnOptions());
                 txn.id = createSimpleUuid_1.default(txnIndex + 1);
                 yield orm.em.persist(txn);
                 return txn;

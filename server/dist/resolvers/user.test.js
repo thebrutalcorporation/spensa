@@ -28,7 +28,6 @@ jest.mock("../utils/sendEmail", () => {
         sendEmail: jest.fn(),
     };
 });
-let serverConnection;
 let orm;
 let em;
 let testClientQuery;
@@ -111,7 +110,6 @@ describe("User Resolver", () => {
                     },
                 },
             });
-            const user = createUserOptions_1.createUserOptions();
             const userToRegister = createUserOptions_1.createUserOptions();
             yield testClientMutate(queries_mutations_1.USER_QUERIES_AND_MUTATIONS.REGISTER, {
                 variables: { options: userToRegister },
@@ -294,8 +292,6 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield application.init();
     orm = yield application.getOrm();
     const apolloServer = yield application.getApolloServer();
-    serverConnection = yield application.getServerConnection();
-    serverConnection.close();
     em = orm.em.fork();
     const { query, mutate, setOptions } = apollo_server_integration_testing_1.createTestClient({
         apolloServer,
@@ -312,7 +308,6 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
-    yield serverConnection.close();
 }));
 function registerUser(username, password, email) {
     var _a;

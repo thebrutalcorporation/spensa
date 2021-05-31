@@ -1,6 +1,10 @@
 import faker from "faker/locale/es";
 
-export function createTxnFixture() {
+interface ITxnOptions {
+  title: string;
+}
+
+export function createTxnOptions(): ITxnOptions {
   const title = faker.company.companyName();
 
   return {

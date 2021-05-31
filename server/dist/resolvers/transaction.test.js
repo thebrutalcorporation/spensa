@@ -24,7 +24,6 @@ const createTxnOptions_1 = require("../test-utils/fixtures/createTxnOptions");
 const createUser_1 = __importDefault(require("../test-utils/fixtures/createUser"));
 const queries_mutations_1 = require("../test-utils/queries-mutations");
 const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
-let serverConnection;
 let orm;
 let em;
 let testClientQuery;
@@ -110,8 +109,6 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield application.init();
     orm = yield application.getOrm();
     const apolloServer = yield application.getApolloServer();
-    serverConnection = yield application.getServerConnection();
-    serverConnection.close();
     em = orm.em.fork();
     const { query, mutate } = apollo_server_integration_testing_1.createTestClient({
         apolloServer,
@@ -132,6 +129,5 @@ afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
     yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
-    yield serverConnection.close();
 }));
 //# sourceMappingURL=transaction.test.js.map

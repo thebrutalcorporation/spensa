@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserFixture = void 0;
+exports.createUserOptions = void 0;
 const es_1 = __importDefault(require("faker/locale/es"));
-function createUserFixture() {
+function createUserOptions() {
     const firstName = es_1.default.name.firstName().toLowerCase();
     const lastName = es_1.default.name.lastName().toLowerCase();
     const fullName = `${firstName}_${lastName}`;
@@ -17,5 +17,5 @@ function createUserFixture() {
         email,
     };
 }
-exports.createUserFixture = createUserFixture;
-//# sourceMappingURL=createUserFixture.js.map
+exports.createUserOptions = createUserOptions;
+//# sourceMappingURL=createUserOptions.js.map

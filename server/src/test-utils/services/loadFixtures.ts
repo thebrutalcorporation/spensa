@@ -1,8 +1,8 @@
 import { Connection, IDatabaseDriver, MikroORM } from "@mikro-orm/core";
 import { Transaction } from "../../entities/Transaction";
 import { User } from "../../entities/User";
-import { createUserFixture } from "../fixtures/createUserFixture";
-import { createTxnFixture } from "../fixtures/createTxnFixture";
+import { createUserOptions } from "../fixtures/createUserOptions";
+import { createTxnOptions } from "../fixtures/createTxnOptions";
 import createSimpleUuid from "../helpers/createSimpleUuid";
 
 export const loadFixtures = async (
@@ -13,7 +13,7 @@ export const loadFixtures = async (
     if (fixtureSet === "user" || fixtureSet === "all") {
       await Promise.all(
         [...Array(5)].map(async (_, userIndex) => {
-          const user = orm.em.create(User, await createUserFixture());
+          const user = orm.em.create(User, await createUserOptions());
           // setting temporary id for test purposes
           user.id = createSimpleUuid(userIndex + 1);
 
@@ -26,7 +26,7 @@ export const loadFixtures = async (
     if (fixtureSet === "transaction" || fixtureSet === "all") {
       await Promise.all(
         [...Array(5)].map(async (_, txnIndex) => {
-          const txn = orm.em.create(Transaction, createTxnFixture());
+          const txn = orm.em.create(Transaction, createTxnOptions());
 
           // setting temporary id for test purposes
           txn.id = createSimpleUuid(txnIndex + 1);
