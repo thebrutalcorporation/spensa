@@ -1,6 +1,14 @@
 import { Transaction } from "../entities/Transaction";
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
 import { Context } from "../utils/interfaces/context";
+import { isAuth } from "../middleware/isAuth";
 
 @Resolver()
 export class TransactionResolver {
@@ -18,6 +26,7 @@ export class TransactionResolver {
   }
 
   @Mutation(() => Transaction)
+  @UseMiddleware(isAuth)
   async createTransaction(
     @Arg("title") title: string,
     @Arg("userId") userId: string,

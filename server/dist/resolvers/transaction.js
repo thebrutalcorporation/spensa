@@ -24,6 +24,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionResolver = void 0;
 const Transaction_1 = require("../entities/Transaction");
 const type_graphql_1 = require("type-graphql");
+const isAuth_1 = require("../middleware/isAuth");
 let TransactionResolver = class TransactionResolver {
     transactions({ em }) {
         return em.find(Transaction_1.Transaction, {});
@@ -82,6 +83,7 @@ __decorate([
 ], TransactionResolver.prototype, "transaction", null);
 __decorate([
     type_graphql_1.Mutation(() => Transaction_1.Transaction),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
     __param(0, type_graphql_1.Arg("title")),
     __param(1, type_graphql_1.Arg("userId")),
     __param(2, type_graphql_1.Ctx()),
