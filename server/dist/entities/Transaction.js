@@ -14,6 +14,7 @@ const core_1 = require("@mikro-orm/core");
 const type_graphql_1 = require("type-graphql");
 const BaseEntity_1 = require("./BaseEntity");
 const uuid_1 = require("uuid");
+const User_1 = require("./User");
 let Transaction = class Transaction extends BaseEntity_1.BaseEntity {
     constructor() {
         super(...arguments);
@@ -30,6 +31,11 @@ __decorate([
     core_1.Property({ type: "text" }),
     __metadata("design:type", String)
 ], Transaction.prototype, "title", void 0);
+__decorate([
+    type_graphql_1.Field(() => User_1.User),
+    core_1.ManyToOne(() => User_1.User, { onDelete: "cascade" }),
+    __metadata("design:type", User_1.User)
+], Transaction.prototype, "user", void 0);
 Transaction = __decorate([
     type_graphql_1.ObjectType(),
     core_1.Entity()

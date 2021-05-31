@@ -18,10 +18,12 @@ const es_1 = __importDefault(require("faker/locale/es"));
 require("reflect-metadata");
 const application_1 = __importDefault(require("../application"));
 const Transaction_1 = require("../entities/Transaction");
-const createTxnFixture_1 = require("../test-utils/fixtures/createTxnFixture");
+const User_1 = require("../entities/User");
+const createTxn_1 = __importDefault(require("../test-utils/fixtures/createTxn"));
+const createTxnOptions_1 = require("../test-utils/fixtures/createTxnOptions");
+const createUser_1 = __importDefault(require("../test-utils/fixtures/createUser"));
 const queries_mutations_1 = require("../test-utils/queries-mutations");
 const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
-const loadFixtures_1 = require("../test-utils/services/loadFixtures");
 let serverConnection;
 let orm;
 let em;
@@ -31,9 +33,11 @@ describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
-            const txnToBeCreatedVariables = createTxnFixture_1.createTxnFixture();
+            const user = yield createUser_1.default(orm);
+            const txn = createTxnOptions_1.createTxnOptions();
+            const txnToBeCreated = Object.assign(Object.assign({}, txn), { userId: user.id });
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: txnToBeCreatedVariables,
+                variables: txnToBeCreated,
             });
             const newlyCreatedTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
             const dbTxn = yield em.findOne(Transaction_1.Transaction, {
@@ -43,7 +47,10 @@ describe("Transaction Resolver", () => {
         }));
         test("should return all transactions", () => __awaiter(void 0, void 0, void 0, function* () {
             var _b;
-            yield loadFixtures_1.loadFixtures(orm, "transaction");
+            const user = yield createUser_1.default(orm);
+            yield Promise.all([...Array(5)].map(() => __awaiter(void 0, void 0, void 0, function* () {
+                return yield createTxn_1.default(orm, user.id);
+            })));
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.GET_ALL_TXNS);
             const transactions = (_b = res.data) === null || _b === void 0 ? void 0 : _b.transactions;
             const dbTxns = yield em.find(Transaction_1.Transaction, {});
@@ -53,50 +60,45 @@ describe("Transaction Resolver", () => {
             });
         }));
         test("should return a transaction by id", () => __awaiter(void 0, void 0, void 0, function* () {
-            var _c;
-            const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: yield createTxnFixture_1.createTxnFixture(),
-            });
-            const newlyCreatedTxn = (_c = response.data) === null || _c === void 0 ? void 0 : _c.createTransaction;
+            const user = yield createUser_1.default(orm);
+            const txn = yield createTxn_1.default(orm, user.id);
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.GET_TXN, {
-                variables: { id: newlyCreatedTxn.id },
+                variables: { id: txn.id },
             });
             const returnedTxn = res.data.transaction;
             const [dbTxn] = yield em.find(Transaction_1.Transaction, {
-                id: newlyCreatedTxn.id,
+                id: txn.id,
             });
-            expect(returnedTxn.id).toBe(newlyCreatedTxn.id);
-            expect(returnedTxn.title).toBe(newlyCreatedTxn.title);
+            expect(returnedTxn.id).toBe(txn.id);
+            expect(returnedTxn.title).toBe(txn.title);
             expect(returnedTxn.id).toBe(dbTxn.id);
             expect(returnedTxn.title).toBe(dbTxn.title);
         }));
         test("should update a transaction", () => __awaiter(void 0, void 0, void 0, function* () {
-            const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: yield createTxnFixture_1.createTxnFixture(),
-            });
-            const newlyCreatedTxn = response.data.createTransaction;
+            const user = yield createUser_1.default(orm);
+            const txn = yield createTxn_1.default(orm, user.id);
+            const originalId = txn.id;
+            const originalTitle = txn.title;
             const newTitle = es_1.default.company.companyName();
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.UPDATE_TXN, {
-                variables: { id: newlyCreatedTxn.id, title: newTitle },
+                variables: { id: txn.id, title: newTitle },
             });
             const updatedTxn = res.data.updateTransaction;
             const [dbTxn] = yield em.find(Transaction_1.Transaction, { id: updatedTxn.id });
-            expect(updatedTxn.id).toBe(newlyCreatedTxn.id);
-            expect(updatedTxn.title).not.toBe(newlyCreatedTxn.title);
+            expect(updatedTxn.id).toBe(originalId);
+            expect(updatedTxn.title).not.toBe(originalTitle);
             expect(updatedTxn.id).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.id);
             expect(updatedTxn.title).toBe(dbTxn.title);
-            expect(dbTxn.title).not.toBe(newlyCreatedTxn.title);
+            expect(dbTxn.title).not.toBe(originalId);
         }));
         test("should delete a transaction", () => __awaiter(void 0, void 0, void 0, function* () {
-            const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: yield createTxnFixture_1.createTxnFixture(),
-            });
-            const newlyCreatedTxn = response.data.createTransaction;
+            const user = yield createUser_1.default(orm);
+            const txn = yield createTxn_1.default(orm, user.id);
             const res = yield testClientQuery(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.DELETE_TXN, {
-                variables: { id: newlyCreatedTxn.id },
+                variables: { id: txn.id },
             });
             const isTxnDeleted = res.data.deleteTransaction;
-            const [dbTxn] = yield em.find(Transaction_1.Transaction, { id: newlyCreatedTxn.id });
+            const [dbTxn] = yield em.find(Transaction_1.Transaction, { id: txn.id });
             expect(isTxnDeleted).toBe(true);
             expect(dbTxn).toBe(undefined);
         }));
@@ -124,10 +126,12 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
 }));
 beforeEach(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     yield clearDatabaseTable_1.clearDatabaseTable(orm, Transaction_1.Transaction);
+    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
-    serverConnection.close();
+    yield serverConnection.close();
 }));
 //# sourceMappingURL=transaction.test.js.map

@@ -20,9 +20,13 @@ export class TransactionResolver {
   @Mutation(() => Transaction)
   async createTransaction(
     @Arg("title") title: string,
+    @Arg("userId") userId: string,
     @Ctx() { em }: Context
   ): Promise<Transaction> {
-    const transaction = em.create(Transaction, { title });
+    const transaction = em.create(Transaction, {
+      title,
+      user: userId,
+    });
     await em.persistAndFlush(transaction);
 
     return transaction;

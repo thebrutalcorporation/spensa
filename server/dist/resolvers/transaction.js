@@ -31,9 +31,12 @@ let TransactionResolver = class TransactionResolver {
     transaction(id, { em }) {
         return em.findOne(Transaction_1.Transaction, { id });
     }
-    createTransaction(title, { em }) {
+    createTransaction(title, userId, { em }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const transaction = em.create(Transaction_1.Transaction, { title });
+            const transaction = em.create(Transaction_1.Transaction, {
+                title,
+                user: userId,
+            });
             yield em.persistAndFlush(transaction);
             return transaction;
         });
@@ -80,9 +83,10 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => Transaction_1.Transaction),
     __param(0, type_graphql_1.Arg("title")),
-    __param(1, type_graphql_1.Ctx()),
+    __param(1, type_graphql_1.Arg("userId")),
+    __param(2, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], TransactionResolver.prototype, "createTransaction", null);
 __decorate([
