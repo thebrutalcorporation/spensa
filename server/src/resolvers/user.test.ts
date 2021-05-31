@@ -493,7 +493,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await clearDatabaseTable(orm, User);
   await orm.close();
 });
 

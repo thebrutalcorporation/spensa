@@ -306,7 +306,6 @@ beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     testClientSetOptions = setOptions;
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield clearDatabaseTable_1.clearDatabaseTable(orm, User_1.User);
     yield orm.close();
 }));
 function registerUser(username, password, email) {
