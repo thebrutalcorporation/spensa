@@ -85,8 +85,7 @@
   "lint-staged": {
     "./**/*.{ts,js}": [
       "npm run format",
-      "npm run lint",
-      "git add"
+      "npm run lint"
     ]
   }
 }
