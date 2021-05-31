@@ -24,7 +24,6 @@ const createTxnOptions_1 = require("../test-utils/fixtures/createTxnOptions");
 const createUser_1 = __importDefault(require("../test-utils/fixtures/createUser"));
 const queries_mutations_1 = require("../test-utils/queries-mutations");
 const clearDatabaseTable_1 = require("../test-utils/services/clearDatabaseTable");
-const createSimpleUuid_1 = __importDefault(require("../test-utils/helpers/createSimpleUuid"));
 let orm;
 let em;
 let testClientQuery;
@@ -35,13 +34,11 @@ describe("Transaction Resolver", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
             const user = yield createUser_1.default(orm);
-            const txn = createTxnOptions_1.createTxnOptions();
-            const txnToBeCreated = Object.assign(Object.assign({}, txn), { userId: user.id });
-            const testUuid = createSimpleUuid_1.default(1);
+            const txnToBeCreated = createTxnOptions_1.createTxnOptions();
             testSetOptions({
                 request: {
                     session: {
-                        userId: testUuid,
+                        userId: user.id,
                     },
                 },
             });

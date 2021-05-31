@@ -43,16 +43,13 @@ describe("Transaction Resolver", () => {
     test("should create a txn successfully", async () => {
       //ARRANGE
       const user = await createUser(orm);
-      const txn = createTxnOptions();
-      const txnToBeCreated = { ...txn, userId: user.id };
+      const txnToBeCreated = createTxnOptions();
 
-      //mock a logged in user by setting the session.userId which causes isAuth to pass
-      const testUuid = createSimpleUuid(1);
       testSetOptions({
         // If "request" or "response" is not specified, it's not modified
         request: {
           session: {
-            userId: testUuid,
+            userId: user.id,
           },
         },
       });

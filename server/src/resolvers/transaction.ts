@@ -29,12 +29,11 @@ export class TransactionResolver {
   @UseMiddleware(isAuth)
   async createTransaction(
     @Arg("title") title: string,
-    @Arg("userId") userId: string,
-    @Ctx() { em }: Context
+    @Ctx() { em, req }: Context
   ): Promise<Transaction> {
     const transaction = em.create(Transaction, {
       title,
-      user: userId,
+      user: req.session.userId,
     });
     await em.persistAndFlush(transaction);
 

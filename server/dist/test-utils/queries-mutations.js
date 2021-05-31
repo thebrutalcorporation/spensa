@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.USER_QUERIES_AND_MUTATIONS = exports.TXN_QUERIES_AND_MUTATIONS = void 0;
 exports.TXN_QUERIES_AND_MUTATIONS = {
-    CREATE_TXN: `mutation createTransaction($title: String!, $userId: String! ) {
-  createTransaction(title: $title, userId:$userId) {
+    CREATE_TXN: `mutation createTransaction($title: String!) {
+  createTransaction(title: $title) {
     id
     title
     createdAt
