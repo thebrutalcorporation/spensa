@@ -28,7 +28,6 @@ jest.mock("../utils/sendEmail", () => {
   };
 });
 
-// let serverConnection: Server;
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let testClientQuery: TestQuery;

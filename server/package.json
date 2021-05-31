@@ -14,7 +14,7 @@
     "pre-commit": "lint-staged",
     "prepare": "cd .. && husky install server/.husky",
     "start": "ts-node src/index.ts",
-    "test": "jest",
+    "test": "jest --runInBand --detectOpenHandles --forceExit ",
     "test:watch": "npm run test -- --watch",
     "watch": "tsc -w"
   },
