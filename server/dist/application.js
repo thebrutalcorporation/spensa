@@ -37,14 +37,6 @@ const Application = () => {
             resolve(orm);
         });
     };
-    const getServerConnection = () => {
-        return new Promise((resolve, reject) => {
-            if (!server) {
-                reject();
-            }
-            resolve(server);
-        });
-    };
     const getApolloServer = () => {
         return new Promise((resolve, reject) => {
             if (!apolloServer) {
@@ -123,7 +115,6 @@ const Application = () => {
         connect,
         getOrm,
         getApolloServer,
-        getServerConnection,
     });
 };
 exports.default = Application;

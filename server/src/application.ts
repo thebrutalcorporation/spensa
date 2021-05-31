@@ -30,15 +30,6 @@ const Application = () => {
     });
   };
 
-  const getServerConnection = (): Promise<Server> => {
-    return new Promise((resolve, reject) => {
-      if (!server) {
-        reject();
-      }
-      resolve(server);
-    });
-  };
-
   const getApolloServer = (): Promise<ApolloServer> => {
     return new Promise((resolve, reject) => {
       if (!apolloServer) {
@@ -127,7 +118,6 @@ const Application = () => {
     connect,
     getOrm,
     getApolloServer,
-    getServerConnection,
   });
 };
 
