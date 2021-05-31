@@ -20,7 +20,7 @@ import { useChangePasswordMutation } from "../../generated/graphql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
 import { toErrorMap } from "../../utils/toErrorMap";
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: NextPage = () => {
   const router = useRouter();
   const [, changePassword] = useChangePasswordMutation();
   const [tokenError, setTokenError] = useState("");
@@ -32,7 +32,8 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
         onSubmit={async (values, { setErrors }) => {
           const response = await changePassword({
             newPassword: values.newPassword,
-            token,
+            token:
+              typeof router.query.token === "string" ? router.query.token : "",
           });
           if (response.data?.ChangePassword.errors) {
             const errorMap = toErrorMap(response.data.ChangePassword.errors);
@@ -90,13 +91,6 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   );
 };
 
-//Need to get teh token from the URL and to do this in next, we set getInitialProps
-ChangePassword.getInitialProps = ({ query }) => {
-  return {
-    token: query.token as string,
-  };
-};
-
 export default withUrqlClient(createUrqlClient)(
-  (ChangePassword as unknown) as NextComponentType //messy fix for type error
+  ChangePassword as unknown as NextComponentType //messy fix for type error
 );
