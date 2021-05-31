@@ -15,7 +15,7 @@ const Index = () => {
       <NextLink href="/create-txn">
         <Link>Create Transaction</Link>
       </NextLink>
-      <div>Hello World!</div>
+
       <br />
       {!data ? (
         <div>loading...</div>
