@@ -14,7 +14,7 @@ import { User } from "../entities/User";
 import { Context } from "../utils/interfaces/context";
 import { sendEmail } from "../utils/sendEmail";
 import { validateRegister } from "../utils/validateRegister";
-import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import { UsernamePasswordInput } from "./InputTypes/UsernamePasswordInput";
 
 @ObjectType()
 class FieldError {

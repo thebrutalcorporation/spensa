@@ -1,4 +1,4 @@
-import { UsernamePasswordInput } from "../resolvers/UsernamePasswordInput";
+import { UsernamePasswordInput } from "../resolvers/InputTypes/UsernamePasswordInput";
 import { validateEmail } from "./validateEmail";
 
 export const validateRegister = async (options: UsernamePasswordInput) => {
