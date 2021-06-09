@@ -1,14 +1,19 @@
 export const TXN_QUERIES_AND_MUTATIONS = {
-  CREATE_TXN: `mutation createTransaction($title: String!) {
-  createTransaction(title: $title) {
+  CREATE_TXN: `mutation createTransaction($options: TransactionInput!) {
+  createTransaction(options: $options) {
     id
+    amount
+    currency
+    details
+    isDiscretionary    
     title
+    txnDate
+    type
     createdAt
-    updatedAt 
+    updatedAt
     user {
       id
-      username
-    }   
+    }
   }
 }`,
   DELETE_TXN: `mutation deleteTransaction($id:String!){
