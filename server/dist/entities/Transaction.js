@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Transaction = void 0;
+exports.Type = exports.Currency = exports.Transaction = void 0;
 const core_1 = require("@mikro-orm/core");
 const type_graphql_1 = require("type-graphql");
 const BaseEntity_1 = require("./BaseEntity");
@@ -28,9 +28,39 @@ __decorate([
 ], Transaction.prototype, "id", void 0);
 __decorate([
     type_graphql_1.Field(),
+    core_1.Property(),
+    __metadata("design:type", Number)
+], Transaction.prototype, "amount", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    core_1.Enum(() => Currency),
+    __metadata("design:type", String)
+], Transaction.prototype, "currency", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    core_1.Property({ nullable: true }),
+    __metadata("design:type", String)
+], Transaction.prototype, "details", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    core_1.Property({ default: true }),
+    __metadata("design:type", Boolean)
+], Transaction.prototype, "isDiscretionary", void 0);
+__decorate([
+    type_graphql_1.Field(),
     core_1.Property({ type: "text" }),
     __metadata("design:type", String)
 ], Transaction.prototype, "title", void 0);
+__decorate([
+    type_graphql_1.Field(() => String),
+    core_1.Property({ type: "date" }),
+    __metadata("design:type", Date)
+], Transaction.prototype, "txnDate", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    core_1.Enum(() => Type),
+    __metadata("design:type", String)
+], Transaction.prototype, "type", void 0);
 __decorate([
     type_graphql_1.Field(() => User_1.User),
     core_1.ManyToOne(() => User_1.User, { onDelete: "cascade" }),
@@ -41,4 +71,15 @@ Transaction = __decorate([
     core_1.Entity()
 ], Transaction);
 exports.Transaction = Transaction;
+var Currency;
+(function (Currency) {
+    Currency["USD"] = "usd";
+    Currency["EURO"] = "euro";
+    Currency["ARS"] = "ars";
+})(Currency = exports.Currency || (exports.Currency = {}));
+var Type;
+(function (Type) {
+    Type["INCOME"] = "income";
+    Type["EXPENSE"] = "expense";
+})(Type = exports.Type || (exports.Type = {}));
 //# sourceMappingURL=Transaction.js.map
