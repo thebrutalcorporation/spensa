@@ -17,7 +17,6 @@ export class Transaction extends BaseEntity {
 
   //TODO: create an entity for category options with type = {income | expense}
 
-  //TODO: add enum/entity for currency
   @Field()
   @Enum(() => Currency)
   currency!: Currency; // string enum
