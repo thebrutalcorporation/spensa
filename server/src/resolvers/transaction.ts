@@ -9,6 +9,7 @@ import {
 } from "type-graphql";
 import { Context } from "../utils/interfaces/context";
 import { isAuth } from "../middleware/isAuth";
+import { TransactionInput } from "./InputTypes/TransactionInput";
 
 @Resolver()
 export class TransactionResolver {
@@ -28,11 +29,17 @@ export class TransactionResolver {
   @Mutation(() => Transaction)
   @UseMiddleware(isAuth)
   async createTransaction(
-    @Arg("title") title: string,
+    @Arg("options") options: TransactionInput,
     @Ctx() { em, req }: Context
   ): Promise<Transaction> {
     const transaction = em.create(Transaction, {
-      title,
+      amount: options.amount,
+      currency: options.currency,
+      details: options.details,
+      isDiscretionary: options.details,
+      title: options.title,
+      txnDate: options.txnDate,
+      type: options.type,
       user: req.session.userId,
     });
     await em.persistAndFlush(transaction);
@@ -40,6 +47,7 @@ export class TransactionResolver {
     return transaction;
   }
 
+  //TODO: refactor to use options input
   @Mutation(() => Transaction, { nullable: true })
   async updateTransaction(
     @Arg("id") id: string,

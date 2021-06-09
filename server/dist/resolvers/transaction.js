@@ -25,6 +25,7 @@ exports.TransactionResolver = void 0;
 const Transaction_1 = require("../entities/Transaction");
 const type_graphql_1 = require("type-graphql");
 const isAuth_1 = require("../middleware/isAuth");
+const TransactionInput_1 = require("./InputTypes/TransactionInput");
 let TransactionResolver = class TransactionResolver {
     transactions({ em }) {
         return em.find(Transaction_1.Transaction, {});
@@ -32,10 +33,16 @@ let TransactionResolver = class TransactionResolver {
     transaction(id, { em }) {
         return em.findOne(Transaction_1.Transaction, { id });
     }
-    createTransaction(title, { em, req }) {
+    createTransaction(options, { em, req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const transaction = em.create(Transaction_1.Transaction, {
-                title,
+                amount: options.amount,
+                currency: options.currency,
+                details: options.details,
+                isDiscretionary: options.details,
+                title: options.title,
+                txnDate: options.txnDate,
+                type: options.type,
                 user: req.session.userId,
             });
             yield em.persistAndFlush(transaction);
@@ -84,10 +91,10 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => Transaction_1.Transaction),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),
-    __param(0, type_graphql_1.Arg("title")),
+    __param(0, type_graphql_1.Arg("options")),
     __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [TransactionInput_1.TransactionInput, Object]),
     __metadata("design:returntype", Promise)
 ], TransactionResolver.prototype, "createTransaction", null);
 __decorate([

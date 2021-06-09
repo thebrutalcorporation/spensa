@@ -43,7 +43,7 @@ describe("Transaction Resolver", () => {
                 },
             });
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: txnToBeCreated,
+                variables: { options: txnToBeCreated },
             });
             const newlyCreatedTxn = (_a = response.data) === null || _a === void 0 ? void 0 : _a.createTransaction;
             const dbTxn = yield em.findOne(Transaction_1.Transaction, {
@@ -112,9 +112,7 @@ describe("Transaction Resolver", () => {
     describe("Validations", () => {
         test("should return an error when creating txn when user not logged in", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
-            const user = yield createUser_1.default(orm);
-            const txn = createTxnOptions_1.createTxnOptions();
-            const txnToBeCreated = Object.assign(Object.assign({}, txn), { userId: user.id });
+            const txnToBeCreated = createTxnOptions_1.createTxnOptions();
             const expectedErrorMessage = "Not authenticated!";
             testSetOptions({
                 request: {
@@ -124,7 +122,7 @@ describe("Transaction Resolver", () => {
                 },
             });
             const response = yield testClientMutate(queries_mutations_1.TXN_QUERIES_AND_MUTATIONS.CREATE_TXN, {
-                variables: txnToBeCreated,
+                variables: { options: txnToBeCreated },
             });
             const receivedErrorMessage = (_a = response.errors) === null || _a === void 0 ? void 0 : _a[0].message;
             expect(response.errors).not.toBe(null);

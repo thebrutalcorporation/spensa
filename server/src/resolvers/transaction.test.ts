@@ -57,7 +57,7 @@ describe("Transaction Resolver", () => {
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
-          variables: txnToBeCreated,
+          variables: { options: txnToBeCreated },
         }
       );
 
@@ -172,9 +172,7 @@ describe("Transaction Resolver", () => {
   describe("Validations", () => {
     test("should return an error when creating txn when user not logged in", async () => {
       //ARRANGE
-      const user = await createUser(orm);
-      const txn = createTxnOptions();
-      const txnToBeCreated = { ...txn, userId: user.id };
+      const txnToBeCreated = createTxnOptions();
       const expectedErrorMessage = "Not authenticated!";
 
       //setting undefined for session.userId means user is not logged in
@@ -191,7 +189,7 @@ describe("Transaction Resolver", () => {
       const response = await testClientMutate(
         TXN_QUERIES_AND_MUTATIONS.CREATE_TXN,
         {
-          variables: txnToBeCreated,
+          variables: { options: txnToBeCreated },
         }
       );
 
