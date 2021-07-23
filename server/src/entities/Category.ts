@@ -8,7 +8,7 @@ import {
 import { Field, ObjectType } from "type-graphql";
 import { BaseEntity } from "./BaseEntity";
 import { v4 } from "uuid";
-import { Transaction } from "./Transaction";
+import { Transaction, Type } from "./Transaction";
 
 @ObjectType()
 @Entity()
@@ -28,11 +28,6 @@ export class Category extends BaseEntity {
   @Field(() => [Transaction])
   @OneToMany(() => Transaction, (transaction) => transaction.category)
   transactions = new Collection<Transaction>(this);
-}
-
-export enum Type {
-  INCOME = "income",
-  EXPENSE = "expense",
 }
 
 export enum CategoryName {

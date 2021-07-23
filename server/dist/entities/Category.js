@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CategoryName = exports.Type = exports.Category = void 0;
+exports.CategoryName = exports.Category = void 0;
 const core_1 = require("@mikro-orm/core");
 const type_graphql_1 = require("type-graphql");
 const BaseEntity_1 = require("./BaseEntity");
@@ -29,7 +29,7 @@ __decorate([
 ], Category.prototype, "id", void 0);
 __decorate([
     type_graphql_1.Field(),
-    core_1.Enum(() => Type),
+    core_1.Enum(() => Transaction_1.Type),
     __metadata("design:type", String)
 ], Category.prototype, "type", void 0);
 __decorate([
@@ -47,11 +47,6 @@ Category = __decorate([
     core_1.Entity()
 ], Category);
 exports.Category = Category;
-var Type;
-(function (Type) {
-    Type["INCOME"] = "income";
-    Type["EXPENSE"] = "expense";
-})(Type = exports.Type || (exports.Type = {}));
 var CategoryName;
 (function (CategoryName) {
     CategoryName["SHARED_GIFT"] = "gift";
