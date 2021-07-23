@@ -21,6 +21,10 @@ __decorate([
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
+], TransactionInput.prototype, "category", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", String)
 ], TransactionInput.prototype, "currency", void 0);
 __decorate([
     type_graphql_1.Field({ nullable: true }),

@@ -15,6 +15,7 @@ const type_graphql_1 = require("type-graphql");
 const BaseEntity_1 = require("./BaseEntity");
 const uuid_1 = require("uuid");
 const User_1 = require("./User");
+const Category_1 = require("./Category");
 let Transaction = class Transaction extends BaseEntity_1.BaseEntity {
     constructor() {
         super(...arguments);
@@ -66,6 +67,11 @@ __decorate([
     core_1.ManyToOne(() => User_1.User, { onDelete: "cascade" }),
     __metadata("design:type", User_1.User)
 ], Transaction.prototype, "user", void 0);
+__decorate([
+    type_graphql_1.Field(() => Category_1.Category),
+    core_1.ManyToOne(() => Category_1.Category),
+    __metadata("design:type", Category_1.Category)
+], Transaction.prototype, "category", void 0);
 Transaction = __decorate([
     type_graphql_1.ObjectType(),
     core_1.Entity()

@@ -7,6 +7,9 @@ export class TransactionInput {
   amount!: number;
 
   @Field()
+  category!: string;
+
+  @Field()
   currency!: Currency;
 
   @Field({ nullable: true })

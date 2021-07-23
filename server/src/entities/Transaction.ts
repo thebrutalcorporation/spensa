@@ -3,6 +3,7 @@ import { Field, ObjectType } from "type-graphql";
 import { BaseEntity } from "./BaseEntity";
 import { v4 } from "uuid";
 import { User } from "./User";
+import { Category } from "./Category";
 
 @ObjectType()
 @Entity()
@@ -19,7 +20,7 @@ export class Transaction extends BaseEntity {
 
   @Field()
   @Enum(() => Currency)
-  currency!: Currency; // string enum
+  currency!: Currency;
 
   @Field()
   @Property({ nullable: true })
@@ -46,6 +47,10 @@ export class Transaction extends BaseEntity {
   @Field(() => User)
   @ManyToOne(() => User, { onDelete: "cascade" })
   user!: User;
+
+  @Field(() => Category)
+  @ManyToOne(() => Category)
+  category!: Category;
 }
 
 export enum Currency {

@@ -34,6 +34,7 @@ export class TransactionResolver {
   ): Promise<Transaction> {
     const transaction = em.create(Transaction, {
       amount: options.amount,
+      category: options.category,
       currency: options.currency,
       details: options.details,
       isDiscretionary: options.details,

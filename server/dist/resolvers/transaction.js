@@ -37,6 +37,7 @@ let TransactionResolver = class TransactionResolver {
         return __awaiter(this, void 0, void 0, function* () {
             const transaction = em.create(Transaction_1.Transaction, {
                 amount: options.amount,
+                category: options.category,
                 currency: options.currency,
                 details: options.details,
                 isDiscretionary: options.details,
