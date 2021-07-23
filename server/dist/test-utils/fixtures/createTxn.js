@@ -13,9 +13,10 @@ const User_1 = require("../../entities/User");
 const createTxnOptions_1 = require("./createTxnOptions");
 const Transaction_1 = require("../../entities/Transaction");
 const createTxn = (orm, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const txn = orm.em.create(Transaction_1.Transaction, createTxnOptions_1.createTxnOptions());
-    txn.user = orm.em.getRepository(User_1.User).getReference(userId);
-    yield orm.em.persistAndFlush(txn);
+    const em = orm.em.fork();
+    const txn = em.create(Transaction_1.Transaction, yield createTxnOptions_1.createTxnOptions(orm));
+    txn.user = em.getRepository(User_1.User).getReference(userId);
+    yield em.persistAndFlush(txn);
     return txn;
 });
 exports.default = createTxn;

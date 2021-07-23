@@ -34,7 +34,7 @@ describe("Transaction Resolver", () => {
         test("should create a txn successfully", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
             const user = yield createUser_1.default(orm);
-            const txnToBeCreated = createTxnOptions_1.createTxnOptions();
+            const txnToBeCreated = yield createTxnOptions_1.createTxnOptions(orm);
             testSetOptions({
                 request: {
                     session: {
@@ -112,7 +112,7 @@ describe("Transaction Resolver", () => {
     describe("Validations", () => {
         test("should return an error when creating txn when user not logged in", () => __awaiter(void 0, void 0, void 0, function* () {
             var _a;
-            const txnToBeCreated = createTxnOptions_1.createTxnOptions();
+            const txnToBeCreated = yield createTxnOptions_1.createTxnOptions(orm);
             const expectedErrorMessage = "Not authenticated!";
             testSetOptions({
                 request: {

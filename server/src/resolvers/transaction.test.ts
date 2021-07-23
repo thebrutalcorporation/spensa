@@ -15,6 +15,7 @@ import "dotenv/config";
 import faker from "faker/locale/es";
 import "reflect-metadata";
 import Application from "../application";
+import { Category } from "../entities/Category";
 import { Transaction } from "../entities/Transaction";
 import { User } from "../entities/User";
 import createTxn from "../test-utils/fixtures/createTxn";
@@ -42,7 +43,7 @@ describe("Transaction Resolver", () => {
     test("should create a txn successfully", async () => {
       //ARRANGE
       const user = await createUser(orm);
-      const txnToBeCreated = createTxnOptions();
+      const txnToBeCreated = await createTxnOptions(orm);
 
       testSetOptions({
         // If "request" or "response" is not specified, it's not modified
@@ -172,7 +173,7 @@ describe("Transaction Resolver", () => {
   describe("Validations", () => {
     test("should return an error when creating txn when user not logged in", async () => {
       //ARRANGE
-      const txnToBeCreated = createTxnOptions();
+      const txnToBeCreated = await createTxnOptions(orm);
       const expectedErrorMessage = "Not authenticated!";
 
       //setting undefined for session.userId means user is not logged in

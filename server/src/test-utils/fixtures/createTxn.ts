@@ -8,13 +8,14 @@ const createTxn = async (
 
   userId: string
 ): Promise<Transaction> => {
-  const txn = orm.em.create(Transaction, createTxnOptions());
+  const em = orm.em.fork();
+  const txn = em.create(Transaction, await createTxnOptions(orm));
 
   // setting temporary id for test purposes
   // txn.id = createSimpleUuid(index + 1);
-  txn.user = orm.em.getRepository(User).getReference(userId);
+  txn.user = em.getRepository(User).getReference(userId);
 
-  await orm.em.persistAndFlush(txn);
+  await em.persistAndFlush(txn);
   return txn;
 };
 
