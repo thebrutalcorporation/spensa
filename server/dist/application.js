@@ -24,6 +24,7 @@ const orm_config_1 = __importDefault(require("./orm.config"));
 const apollo_server_express_1 = require("apollo-server-express");
 const transaction_1 = require("./resolvers/transaction");
 const user_1 = require("./resolvers/user");
+const populateLookupTables_1 = require("./populateLookupTables");
 const Application = () => {
     let orm;
     let host;
@@ -53,6 +54,7 @@ const Application = () => {
             if (migrations && migrations.length > 0) {
                 yield migrator.up();
             }
+            yield populateLookupTables_1.populateLookupTables(orm);
         }
         catch (error) {
             console.error("📌 Could not connect to the database", error);

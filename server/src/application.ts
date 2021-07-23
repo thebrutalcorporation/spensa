@@ -13,6 +13,7 @@ import { TransactionResolver } from "./resolvers/transaction";
 import { UserResolver } from "./resolvers/user";
 import { Server } from "http";
 import { AddressInfo } from "net";
+import { populateLookupTables } from "./populateLookupTables";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const Application = () => {
@@ -47,6 +48,7 @@ const Application = () => {
       if (migrations && migrations.length > 0) {
         await migrator.up();
       }
+      await populateLookupTables(orm);
     } catch (error) {
       console.error("📌 Could not connect to the database", error);
       throw Error(error);
