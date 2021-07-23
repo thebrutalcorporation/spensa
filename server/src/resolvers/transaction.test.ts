@@ -15,7 +15,6 @@ import "dotenv/config";
 import faker from "faker/locale/es";
 import "reflect-metadata";
 import Application from "../application";
-import { Category } from "../entities/Category";
 import { Transaction } from "../entities/Transaction";
 import { User } from "../entities/User";
 import createTxn from "../test-utils/fixtures/createTxn";

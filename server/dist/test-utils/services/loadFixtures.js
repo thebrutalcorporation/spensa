@@ -30,7 +30,7 @@ const loadFixtures = (orm, fixtureSet) => __awaiter(void 0, void 0, void 0, func
         }
         if (fixtureSet === "transaction" || fixtureSet === "all") {
             yield Promise.all([...Array(5)].map((_, txnIndex) => __awaiter(void 0, void 0, void 0, function* () {
-                const txn = orm.em.create(Transaction_1.Transaction, createTxnOptions_1.createTxnOptions());
+                const txn = orm.em.create(Transaction_1.Transaction, yield createTxnOptions_1.createTxnOptions(orm));
                 txn.id = createSimpleUuid_1.default(txnIndex + 1);
                 yield orm.em.persist(txn);
                 return txn;

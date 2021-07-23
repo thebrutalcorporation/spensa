@@ -26,7 +26,7 @@ export const loadFixtures = async (
     if (fixtureSet === "transaction" || fixtureSet === "all") {
       await Promise.all(
         [...Array(5)].map(async (_, txnIndex) => {
-          const txn = orm.em.create(Transaction, createTxnOptions());
+          const txn = orm.em.create(Transaction, await createTxnOptions(orm));
 
           // setting temporary id for test purposes
           txn.id = createSimpleUuid(txnIndex + 1);
