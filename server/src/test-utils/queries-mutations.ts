@@ -3,6 +3,9 @@ export const TXN_QUERIES_AND_MUTATIONS = {
   createTransaction(options: $options) {
     id
     amount
+    category {
+      id
+    }
     currency
     details
     isDiscretionary    
