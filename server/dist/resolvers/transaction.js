@@ -40,7 +40,7 @@ let TransactionResolver = class TransactionResolver {
                 category: options.category,
                 currency: options.currency,
                 details: options.details,
-                isDiscretionary: options.details,
+                isDiscretionary: options.isDiscretionary,
                 title: options.title,
                 txnDate: options.txnDate,
                 type: options.type,
