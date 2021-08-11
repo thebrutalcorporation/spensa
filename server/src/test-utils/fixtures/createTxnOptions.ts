@@ -20,7 +20,7 @@ export async function createTxnOptions(
 ): Promise<ITxnOptions> {
   const em = orm.em.fork();
   const categories = await em.find(Category, {});
-  const amount = Number(faker.finance.amount()) * 100; //multiply by 100 to convert dollars to cents and store as integer
+  const amount = Math.trunc(Number(faker.finance.amount()) * 100); //multiply amount by 100 to convert dollars to cents and store as integer
   const currency = getRandomItemFromObject(Currency);
   const details = faker.commerce.productDescription();
   const isDiscretionary = faker.datatype.boolean();
