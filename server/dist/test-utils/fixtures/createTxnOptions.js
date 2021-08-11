@@ -21,7 +21,7 @@ function createTxnOptions(orm) {
     return __awaiter(this, void 0, void 0, function* () {
         const em = orm.em.fork();
         const categories = yield em.find(Category_1.Category, {});
-        const amount = Number(es_1.default.finance.amount());
+        const amount = Number(es_1.default.finance.amount()) * 100;
         const currency = getRandomItemFromObject(Transaction_1.Currency);
         const details = es_1.default.commerce.productDescription();
         const isDiscretionary = es_1.default.datatype.boolean();

@@ -35,6 +35,7 @@ describe("Transaction Resolver", () => {
             var _a;
             const user = yield createUser_1.default(orm);
             const txnToBeCreated = yield createTxnOptions_1.createTxnOptions(orm);
+            console.log("txnToBeCreated", txnToBeCreated);
             testSetOptions({
                 request: {
                     session: {
@@ -49,7 +50,10 @@ describe("Transaction Resolver", () => {
             const dbTxn = yield em.findOne(Transaction_1.Transaction, {
                 id: newlyCreatedTxn.id,
             });
+            console.log("dbTxn", dbTxn);
             expect(newlyCreatedTxn.id).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.id);
+            expect(newlyCreatedTxn.amount).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.amount);
+            expect(newlyCreatedTxn.isDiscretionary).toBe(dbTxn === null || dbTxn === void 0 ? void 0 : dbTxn.isDiscretionary);
         }));
         test("should return all transactions", () => __awaiter(void 0, void 0, void 0, function* () {
             var _b;

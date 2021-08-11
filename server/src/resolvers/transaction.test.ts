@@ -43,6 +43,7 @@ describe("Transaction Resolver", () => {
       //ARRANGE
       const user = await createUser(orm);
       const txnToBeCreated = await createTxnOptions(orm);
+      console.log("txnToBeCreated", txnToBeCreated);
 
       testSetOptions({
         // If "request" or "response" is not specified, it's not modified
@@ -68,7 +69,10 @@ describe("Transaction Resolver", () => {
       const dbTxn = await em.findOne(Transaction, {
         id: newlyCreatedTxn.id,
       });
+      console.log("dbTxn", dbTxn);
       expect(newlyCreatedTxn.id).toBe(dbTxn?.id);
+      expect(newlyCreatedTxn.amount).toBe(dbTxn?.amount);
+      expect(newlyCreatedTxn.isDiscretionary).toBe(dbTxn?.isDiscretionary);
     });
 
     test("should return all transactions", async () => {
