@@ -12,7 +12,20 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** The javascript `Date` as string. Type represents date and time as the ISO Date string. */
+  DateTime: any;
 };
+
+export type Category = {
+  __typename?: 'Category';
+  createdAt: Scalars['String'];
+  updatedAt: Scalars['String'];
+  id: Scalars['String'];
+  type: Scalars['String'];
+  name: Scalars['String'];
+  transactions: Array<Transaction>;
+};
+
 
 export type FieldError = {
   __typename?: 'FieldError';
@@ -34,7 +47,7 @@ export type Mutation = {
 
 
 export type MutationCreateTransactionArgs = {
-  title: Scalars['String'];
+  options: TransactionInput;
 };
 
 
@@ -75,6 +88,7 @@ export type Query = {
   transactions: Array<Transaction>;
   transaction?: Maybe<Transaction>;
   me?: Maybe<User>;
+  categories: Array<Category>;
 };
 
 
@@ -87,8 +101,26 @@ export type Transaction = {
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
   id: Scalars['String'];
+  amount: Scalars['Float'];
+  currency: Scalars['String'];
+  details: Scalars['String'];
+  isDiscretionary: Scalars['Boolean'];
   title: Scalars['String'];
+  txnDate: Scalars['String'];
+  type: Scalars['String'];
   user: User;
+  category: Category;
+};
+
+export type TransactionInput = {
+  amount: Scalars['Float'];
+  category: Scalars['String'];
+  currency: Scalars['String'];
+  details?: Maybe<Scalars['String']>;
+  isDiscretionary: Scalars['Boolean'];
+  title: Scalars['String'];
+  txnDate: Scalars['DateTime'];
+  type: Scalars['String'];
 };
 
 export type User = {
@@ -149,7 +181,7 @@ export type ChangePasswordMutation = (
 );
 
 export type CreateTransactionMutationVariables = Exact<{
-  title: Scalars['String'];
+  options: TransactionInput;
 }>;
 
 
@@ -157,10 +189,10 @@ export type CreateTransactionMutation = (
   { __typename?: 'Mutation' }
   & { createTransaction: (
     { __typename?: 'Transaction' }
-    & Pick<Transaction, 'id' | 'title' | 'createdAt' | 'updatedAt'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'id'>
+    & Pick<Transaction, 'id' | 'amount' | 'currency' | 'details' | 'isDiscretionary' | 'title' | 'txnDate' | 'type' | 'createdAt' | 'updatedAt'>
+    & { category: (
+      { __typename?: 'Category' }
+      & Pick<Category, 'id'>
     ) }
   ) }
 );
@@ -208,6 +240,17 @@ export type RegisterMutation = (
     { __typename?: 'UserResponse' }
     & UserResponseFragment
   ) }
+);
+
+export type AllCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllCategoriesQuery = (
+  { __typename?: 'Query' }
+  & { categories: Array<(
+    { __typename?: 'Category' }
+    & Pick<Category, 'id' | 'type' | 'name' | 'createdAt' | 'updatedAt'>
+  )> }
 );
 
 export type AllTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -267,15 +310,21 @@ export function useChangePasswordMutation() {
   return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
 };
 export const CreateTransactionDocument = gql`
-    mutation createTransaction($title: String!) {
-  createTransaction(title: $title) {
+    mutation createTransaction($options: TransactionInput!) {
+  createTransaction(options: $options) {
     id
-    title
-    createdAt
-    updatedAt
-    user {
+    amount
+    category {
       id
     }
+    currency
+    details
+    isDiscretionary
+    title
+    txnDate
+    type
+    createdAt
+    updatedAt
   }
 }
     `;
@@ -322,6 +371,21 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const AllCategoriesDocument = gql`
+    query allCategories {
+  categories {
+    id
+    type
+    name
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+export function useAllCategoriesQuery(options: Omit<Urql.UseQueryArgs<AllCategoriesQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<AllCategoriesQuery>({ query: AllCategoriesDocument, ...options });
 };
 export const AllTransactionsDocument = gql`
     query allTransactions {

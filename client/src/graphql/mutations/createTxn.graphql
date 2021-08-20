@@ -1,11 +1,17 @@
-mutation createTransaction($title: String!) {
-  createTransaction(title: $title) {
+mutation createTransaction($options: TransactionInput!) {
+  createTransaction(options: $options) {
     id
-    title
-    createdAt
-    updatedAt
-    user {
+    amount
+    category {
       id
     }
+    currency
+    details
+    isDiscretionary
+    title
+    txnDate
+    type
+    createdAt
+    updatedAt
   }
 }

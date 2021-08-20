@@ -1,0 +1,9 @@
+query allCategories {
+  categories {
+    id
+    type
+    name
+    createdAt
+    updatedAt
+  }
+}
