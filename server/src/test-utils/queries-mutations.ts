@@ -1,3 +1,13 @@
+export const CATEGORY_QUERIES_AND_MUTATIONS = {
+  GET_ALL_CATEGORIES: `query allCategories {
+    categories {
+      id
+      type
+      name      
+    }
+  }`,
+};
+
 export const TXN_QUERIES_AND_MUTATIONS = {
   CREATE_TXN: `mutation createTransaction($options: TransactionInput!) {
   createTransaction(options: $options) {
