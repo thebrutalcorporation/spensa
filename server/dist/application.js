@@ -25,6 +25,7 @@ const apollo_server_express_1 = require("apollo-server-express");
 const transaction_1 = require("./resolvers/transaction");
 const user_1 = require("./resolvers/user");
 const populateLookupTables_1 = require("./populateLookupTables");
+const category_1 = require("./resolvers/category");
 const Application = () => {
     let orm;
     let host;
@@ -88,7 +89,7 @@ const Application = () => {
             }));
             apolloServer = new apollo_server_express_1.ApolloServer({
                 schema: yield type_graphql_1.buildSchema({
-                    resolvers: [transaction_1.TransactionResolver, user_1.UserResolver],
+                    resolvers: [category_1.CategoryResolver, transaction_1.TransactionResolver, user_1.UserResolver],
                     validate: false,
                 }),
                 context: ({ req, res }) => ({ em: orm.em, req, res, redis }),

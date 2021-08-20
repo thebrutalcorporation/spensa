@@ -14,6 +14,7 @@ import { UserResolver } from "./resolvers/user";
 import { Server } from "http";
 import { AddressInfo } from "net";
 import { populateLookupTables } from "./populateLookupTables";
+import { CategoryResolver } from "./resolvers/category";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const Application = () => {
@@ -90,7 +91,7 @@ const Application = () => {
 
       apolloServer = new ApolloServer({
         schema: await buildSchema({
-          resolvers: [TransactionResolver, UserResolver],
+          resolvers: [CategoryResolver, TransactionResolver, UserResolver],
           validate: false,
         }),
         context: ({ req, res }): Context => ({ em: orm.em, req, res, redis }),
