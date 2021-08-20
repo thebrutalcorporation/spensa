@@ -17,6 +17,7 @@ const es_1 = __importDefault(require("faker/locale/es"));
 const Category_1 = require("../../entities/Category");
 const Transaction_1 = require("../../entities/Transaction");
 const getRandomIntInclusive_1 = require("../helpers/getRandomIntInclusive");
+const getRandomItemFromArray_1 = __importDefault(require("../helpers/getRandomItemFromArray"));
 function createTxnOptions(orm) {
     return __awaiter(this, void 0, void 0, function* () {
         const em = orm.em.fork();
@@ -29,7 +30,7 @@ function createTxnOptions(orm) {
         const txnDate = es_1.default.date.recent().toISOString();
         const type = getRandomItemFromObject(Transaction_1.Type);
         const filteredCategories = categories.filter((category) => category.type === type);
-        const category = getRandomItemFromArray(filteredCategories)
+        const category = getRandomItemFromArray_1.default(filteredCategories)
             .id;
         return {
             amount,
@@ -46,8 +47,5 @@ function createTxnOptions(orm) {
 exports.createTxnOptions = createTxnOptions;
 function getRandomItemFromObject(object) {
     return Object.keys(object)[getRandomIntInclusive_1.getRandomIntInclusive(0, Object.keys(object).length - 1)].toLowerCase();
-}
-function getRandomItemFromArray(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
 }
 //# sourceMappingURL=createTxnOptions.js.map

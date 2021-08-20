@@ -3,6 +3,7 @@ import faker from "faker/locale/es";
 import { Category } from "../../entities/Category";
 import { Currency, Type } from "../../entities/Transaction";
 import { getRandomIntInclusive } from "../helpers/getRandomIntInclusive";
+import getRandomItemFromArray from "../helpers/getRandomItemFromArray";
 
 interface ITxnOptions {
   amount: number;
@@ -49,8 +50,4 @@ function getRandomItemFromObject(object: Record<string, unknown>) {
   return Object.keys(object)[
     getRandomIntInclusive(0, Object.keys(object).length - 1)
   ].toLowerCase();
-}
-
-function getRandomItemFromArray(arr: []): Record<string, unknown> {
-  return arr[Math.floor(Math.random() * arr.length)];
 }
