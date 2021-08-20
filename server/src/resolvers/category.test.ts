@@ -6,11 +6,7 @@ import {
   IDatabaseDriver,
   MikroORM,
 } from "@mikro-orm/core";
-import {
-  createTestClient,
-  TestQuery,
-  TestSetOptions,
-} from "apollo-server-integration-testing";
+import { createTestClient, TestQuery } from "apollo-server-integration-testing";
 import "dotenv/config";
 import "reflect-metadata";
 import Application from "../application";
@@ -20,8 +16,6 @@ import { CATEGORY_QUERIES_AND_MUTATIONS } from "../test-utils/queries-mutations"
 let orm: MikroORM<IDatabaseDriver<Connection>>;
 let em: EntityManager<IDatabaseDriver<Connection>>; //entity manager for ORM
 let testClientQuery: TestQuery;
-let testClientMutate: TestQuery;
-let testSetOptions: TestSetOptions;
 
 describe("Transaction Resolver", () => {
   describe("Happy Path", () => {

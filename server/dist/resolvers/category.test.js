@@ -21,8 +21,6 @@ const queries_mutations_1 = require("../test-utils/queries-mutations");
 let orm;
 let em;
 let testClientQuery;
-let testClientMutate;
-let testSetOptions;
 describe("Transaction Resolver", () => {
     describe("Happy Path", () => {
         test("should return all categories", () => __awaiter(void 0, void 0, void 0, function* () {

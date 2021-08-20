@@ -1,4 +1,4 @@
-import { Arg, Ctx, Query, Resolver } from "type-graphql";
+import { Ctx, Query, Resolver } from "type-graphql";
 import { Category } from "../entities/Category";
 import { Context } from "../utils/interfaces/context";
 
