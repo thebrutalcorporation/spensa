@@ -1,6 +1,7 @@
 import { MikroORM, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Category, CategoryName } from "./entities/Category";
 
+//TODO: REFACTOR as categories should be populated via SQL during migration.
 export const populateLookupTables = async (
   orm: MikroORM<IDatabaseDriver<Connection>>
 ): Promise<void> => {
