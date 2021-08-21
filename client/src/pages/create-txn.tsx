@@ -60,9 +60,10 @@ const CreateTxn: React.FC<{}> = ({}) => {
           amount: Yup.number().max(100000000).positive().required("Required"),
           category: Yup.string().required("Requird"),
           currency: Yup.string().required("Required"),
+          details: Yup.string().max(200, "Must be 200 characters or less"),
           discretionary: Yup.bool(),
           title: Yup.string()
-            .max(15, "Must be 15 characters or less")
+            .max(40, "Must be 40 characters or less")
             .required("Required"),
           type: Yup.string().required("Required"),
         })}
