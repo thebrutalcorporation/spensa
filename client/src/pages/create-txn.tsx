@@ -9,12 +9,12 @@ import {
   Select,
   Switch,
 } from "@chakra-ui/react";
+import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import { Field, FieldAttributes, Form, Formik, FormikProps } from "formik";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useState } from "react";
 import * as Yup from "yup";
-import { DateSchema } from "yup";
 import InputField from "../components/InputField";
 import Layout from "../components/Layout";
 import {
@@ -32,7 +32,7 @@ interface FormValues {
   currency: string;
   details: string;
   isDiscretionary: boolean;
-  txnDate: DateSchema<Date | undefined, Record<string, any>, Date | undefined>;
+  txnDate: Date;
 }
 
 const CreateTxn: React.FC<{}> = ({}) => {
@@ -41,6 +41,7 @@ const CreateTxn: React.FC<{}> = ({}) => {
   const [, createTxn] = useCreateTransactionMutation();
   const [{ data }] = useAllCategoriesQuery();
   const categories = data?.categories;
+  const [date, setDate] = useState(new Date());
 
   return (
     <Layout variant="small">
@@ -53,7 +54,7 @@ const CreateTxn: React.FC<{}> = ({}) => {
           currency: "ars",
           details: "",
           isDiscretionary: true,
-          txnDate: Yup.date(),
+          txnDate: date,
         }}
         validationSchema={Yup.object({
           amount: Yup.number().max(100000000).positive().required("Required"),
@@ -121,6 +122,31 @@ const CreateTxn: React.FC<{}> = ({}) => {
                   )}
                 </Field>
               </Box>
+              <Box mt={4}>
+                <Field name="txnDate">
+                  {({ field, form }: FieldAttributes<any>) => (
+                    <FormControl
+                      id="txnDate"
+                      isInvalid={form.errors.txnDate && form.touched.txnDate}
+                    >
+                      <FormLabel htmlFor="txnDate">Date</FormLabel>
+                      <SingleDatepicker
+                        {...field}
+                        name="date-input"
+                        date={date}
+                        onDateChange={setDate}
+                      />
+
+                      {form.errors.txnDate && (
+                        <FormErrorMessage>
+                          {form.errors.txnDate}
+                        </FormErrorMessage>
+                      )}
+                    </FormControl>
+                  )}
+                </Field>
+              </Box>
+
               <Box mt={4}>
                 <Field name="currency">
                   {({ field, form }: FieldAttributes<any>) => (

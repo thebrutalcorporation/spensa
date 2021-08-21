@@ -2196,6 +2196,14 @@ capital-case@^1.0.4:
     tslib "^2.0.3"
     upper-case-first "^2.0.2"
 
+chakra-dayzed-datepicker@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/chakra-dayzed-datepicker/-/chakra-dayzed-datepicker-0.1.1.tgz#16232e7d76d904ec7bb5dbdd76eb84eeabbabab5"
+  integrity sha512-VHS2yCp2kAtDs0RyX0+GeHKalcTjAPY1kzVfU6xF427xRO8fkH3cOfwGoEKOW0/A2Y+A0cZFS91oktHVLMdoEA==
+  dependencies:
+    lodash "^4.17.21"
+    lodash-es "^4.17.21"
+
 chalk@2.4.2, chalk@^2.0.0, chalk@^2.4.1:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
